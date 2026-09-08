@@ -73,4 +73,7 @@ public class Graph {
             System.out.println();
         }
     }
+   public List<Node> getAllNodes() {
+    return new ArrayList<>(nodes.values());
+} 
 }
