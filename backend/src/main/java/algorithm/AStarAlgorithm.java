@@ -141,7 +141,7 @@ public class AStarAlgorithm {
                 // Actual distance through current node
                 double tentativeGScore =
                         gScore.get(currentId)
-                                + edge.getDistance();
+                                + edge.getTravelCost();
 
 
                 // =================================

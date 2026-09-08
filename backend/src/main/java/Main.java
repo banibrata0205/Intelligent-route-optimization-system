@@ -58,37 +58,60 @@ public class Main {
         // CREATE ROADS
         // =========================================
 
-        graph.addEdge(
+        Edge collegeToHospital =
                 new Edge(
                         college,
                         hospital,
                         5
-                )
-        );
+                );
 
-        graph.addEdge(
+        Edge collegeToRailway =
                 new Edge(
                         college,
                         railwayStation,
                         10
-                )
-        );
+                );
 
-        graph.addEdge(
+        Edge hospitalToAirport =
                 new Edge(
                         hospital,
                         airport,
                         3
-                )
-        );
+                );
 
-        graph.addEdge(
+        Edge railwayToAirport =
                 new Edge(
                         railwayStation,
                         airport,
                         4
-                )
-        );
+                );
+
+
+        // =========================================
+        // ADD TRAFFIC CONDITIONS
+        // =========================================
+
+        // Heavy traffic
+        collegeToHospital.setTrafficMultiplier(2.0);
+
+        // Normal traffic
+        collegeToRailway.setTrafficMultiplier(1.0);
+
+        // Heavy traffic
+        hospitalToAirport.setTrafficMultiplier(2.0);
+
+        // Normal traffic
+        railwayToAirport.setTrafficMultiplier(1.0);
+
+
+        // =========================================
+        // ADD ROADS TO GRAPH
+        // =========================================
+
+        graph.addEdge(collegeToHospital);
+        graph.addEdge(collegeToRailway);
+        graph.addEdge(hospitalToAirport);
+        graph.addEdge(railwayToAirport);
 
 
         // =========================================
@@ -122,7 +145,7 @@ public class Main {
 
 
         // =========================================
-        // DISPLAY RESULTS
+        // DISPLAY ROUTE RESULTS
         // =========================================
 
         System.out.println();
@@ -163,7 +186,7 @@ public class Main {
         System.out.println();
 
         System.out.println(
-                "Distance: "
+                "Cost: "
                         + dijkstraResult
                                 .getTotalDistance()
                         + " km"
@@ -202,10 +225,37 @@ public class Main {
         System.out.println();
 
         System.out.println(
-                "Distance: "
+                "Cost: "
                         + aStarResult
                                 .getTotalDistance()
                         + " km"
+        );
+
+        System.out.println("================================");
+
+
+        // =========================================
+        // DISPLAY TRAFFIC INFORMATION
+        // =========================================
+
+        System.out.println();
+        System.out.println("TRAFFIC CONDITIONS");
+        System.out.println("================================");
+
+        System.out.println(
+                collegeToHospital
+        );
+
+        System.out.println(
+                collegeToRailway
+        );
+
+        System.out.println(
+                hospitalToAirport
+        );
+
+        System.out.println(
+                railwayToAirport
         );
 
         System.out.println("================================");
