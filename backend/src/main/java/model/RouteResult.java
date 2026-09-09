@@ -5,18 +5,51 @@ import java.util.List;
 public class RouteResult {
 
     private List<Node> path;
-    private double totalDistance;
 
-    public RouteResult(List<Node> path, double totalDistance) {
+    // Total travel time in hours
+    private double totalTravelTimeHours;
+
+
+    // =========================================
+    // CONSTRUCTOR
+    // =========================================
+
+    public RouteResult(
+            List<Node> path,
+            double totalTravelTimeHours) {
+
         this.path = path;
-        this.totalDistance = totalDistance;
+        this.totalTravelTimeHours =
+                totalTravelTimeHours;
     }
 
+
+    // =========================================
+    // GET PATH
+    // =========================================
+
     public List<Node> getPath() {
+
         return path;
     }
 
-    public double getTotalDistance() {
-        return totalDistance;
+
+    // =========================================
+    // GET TRAVEL TIME IN HOURS
+    // =========================================
+
+    public double getTotalTravelTimeHours() {
+
+        return totalTravelTimeHours;
+    }
+
+
+    // =========================================
+    // GET TRAVEL TIME IN MINUTES
+    // =========================================
+
+    public double getTotalTravelTimeMinutes() {
+
+        return totalTravelTimeHours * 60;
     }
 }

@@ -5,8 +5,11 @@ public class Edge {
     private Node source;
     private Node destination;
 
-    // Base road distance
+    // Base road distance in kilometers
     private double distance;
+
+    // Speed limit in km/h
+    private double speedKmh;
 
     // Current traffic condition
     private TrafficLevel trafficLevel;
@@ -19,15 +22,16 @@ public class Edge {
     public Edge(
             Node source,
             Node destination,
-            double distance) {
+            double distance,
+            double speedKmh) {
 
         this.source = source;
         this.destination = destination;
         this.distance = distance;
+        this.speedKmh = speedKmh;
 
         // Default traffic condition
-        this.trafficLevel =
-                TrafficLevel.NORMAL;
+        this.trafficLevel = TrafficLevel.NORMAL;
     }
 
 
@@ -47,6 +51,10 @@ public class Edge {
         return distance;
     }
 
+    public double getSpeedKmh() {
+        return speedKmh;
+    }
+
     public TrafficLevel getTrafficLevel() {
         return trafficLevel;
     }
@@ -59,13 +67,58 @@ public class Edge {
     public void setTrafficLevel(
             TrafficLevel trafficLevel) {
 
-        this.trafficLevel =
-                trafficLevel;
+        if (trafficLevel == null) {
+            throw new IllegalArgumentException(
+                    "Traffic level cannot be null"
+            );
+        }
+
+        this.trafficLevel = trafficLevel;
     }
 
 
     // =========================================
-    // CALCULATE TRAVEL COST
+    // CALCULATE EFFECTIVE SPEED
+    // =========================================
+
+    public double getEffectiveSpeedKmh() {
+
+        return speedKmh /
+                trafficLevel.getMultiplier();
+    }
+
+
+    // =========================================
+    // CALCULATE TRAVEL TIME IN HOURS
+    // =========================================
+
+    public double getTravelTimeHours() {
+
+        return distance /
+                getEffectiveSpeedKmh();
+    }
+
+
+    // =========================================
+    // CALCULATE TRAVEL TIME IN MINUTES
+    // =========================================
+
+    public double getTravelTimeMinutes() {
+
+        return getTravelTimeHours() * 60;
+    }
+
+
+    // =========================================
+    // CALCULATE TRAFFIC-ADJUSTED COST
+    // =========================================
+    //
+    // This keeps compatibility with the current
+    // Dijkstra and A* implementations.
+    //
+    // Later, we will change the algorithms to
+    // optimize actual travel time.
+    //
     // =========================================
 
     public double getTravelCost() {
@@ -76,7 +129,7 @@ public class Edge {
 
 
     // =========================================
-    // DISPLAY EDGE
+    // DISPLAY
     // =========================================
 
     @Override
@@ -87,10 +140,20 @@ public class Edge {
                 + destination.getName()
                 + " ("
                 + distance
-                + " km, traffic="
+                + " km, speed="
+                + speedKmh
+                + " km/h, traffic="
                 + trafficLevel
                 + ", cost="
-                + getTravelCost()
-                + ")";
+                + String.format(
+                        "%.2f",
+                        getTravelCost()
+                )
+                + ", time="
+                + String.format(
+                        "%.2f",
+                        getTravelTimeMinutes()
+                )
+                + " min)";
     }
 }

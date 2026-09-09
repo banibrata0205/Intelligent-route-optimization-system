@@ -16,7 +16,8 @@ public class AStarAlgorithm {
 
         // =========================================
         // gScore
-        // Actual distance from source to each node
+        // Actual travel time from source
+        // to each node, measured in hours
         // =========================================
 
         Map<Integer, Double> gScore =
@@ -25,7 +26,7 @@ public class AStarAlgorithm {
 
         // =========================================
         // fScore
-        // Estimated total distance
+        // Estimated total travel time
         // fScore = gScore + heuristic
         // =========================================
 
@@ -35,7 +36,7 @@ public class AStarAlgorithm {
 
         // =========================================
         // previous
-        // Used to reconstruct the final route
+        // Used to reconstruct the route
         // =========================================
 
         Map<Integer, Integer> previous =
@@ -43,8 +44,8 @@ public class AStarAlgorithm {
 
 
         // =========================================
-        // Priority Queue
-        // Node with lowest fScore is processed first
+        // PRIORITY QUEUE
+        // Lowest estimated travel time first
         // =========================================
 
         PriorityQueue<NodeDistance> openSet =
@@ -138,10 +139,13 @@ public class AStarAlgorithm {
                                 .getId();
 
 
-                // Actual distance through current node
+                // =================================
+                // ACTUAL TRAVEL TIME
+                // =================================
+
                 double tentativeGScore =
                         gScore.get(currentId)
-                                + edge.getTravelCost();
+                                + edge.getTravelTimeHours();
 
 
                 // =================================
@@ -158,7 +162,7 @@ public class AStarAlgorithm {
                     );
 
 
-                    // Update actual distance
+                    // Update actual travel time
                     gScore.put(
                             neighborId,
                             tentativeGScore
@@ -173,7 +177,10 @@ public class AStarAlgorithm {
                             );
 
 
+                    // =================================
                     // f(n) = g(n) + h(n)
+                    // =================================
+
                     double estimatedTotal =
                             tentativeGScore
                                     + hScore;
@@ -208,7 +215,10 @@ public class AStarAlgorithm {
                 destinationId;
 
 
-        // No route found
+        // =========================================
+        // NO ROUTE FOUND
+        // =========================================
+
         if (!previous.containsKey(current)
                 && current != sourceId) {
 
@@ -219,7 +229,10 @@ public class AStarAlgorithm {
         }
 
 
-        // Build path backwards
+        // =========================================
+        // BUILD PATH BACKWARDS
+        // =========================================
+
         while (current != null) {
 
             path.add(
@@ -231,7 +244,7 @@ public class AStarAlgorithm {
         }
 
 
-        // Reverse path
+        // Reverse the path
         Collections.reverse(path);
 
 
@@ -247,11 +260,15 @@ public class AStarAlgorithm {
 
 
     // =============================================
-    // HEURISTIC FUNCTION
+    // HEURISTIC
     // =============================================
     //
-    // Uses Haversine formula to calculate the
-    // straight-line geographic distance in km.
+    // Calculates an optimistic estimate of the
+    // remaining travel time.
+    //
+    // Haversine distance → kilometers
+    // Optimistic speed → 60 km/h
+    // Result → hours
     //
     // =============================================
 
@@ -259,10 +276,25 @@ public class AStarAlgorithm {
             Node current,
             Node destination) {
 
-        return GeoUtils.calculateDistance(
-                current,
-                destination
-        );
+        double distanceKm =
+                GeoUtils.calculateDistance(
+                        current,
+                        destination
+                );
+
+
+        // Optimistic speed.
+        // We assume the vehicle can travel at
+        // 60 km/h for the heuristic.
+
+        double optimisticSpeedKmh =
+                60.0;
+
+
+        // Convert distance to estimated hours
+
+        return distanceKm /
+                optimisticSpeedKmh;
     }
 
 

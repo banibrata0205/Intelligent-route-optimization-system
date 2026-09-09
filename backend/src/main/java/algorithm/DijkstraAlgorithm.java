@@ -71,7 +71,7 @@ public class DijkstraAlgorithm {
 
                 double newDistance =
                         currentDistance +
-                        edge.getTravelCost();
+                        edge.getTravelTimeHours();
 
                 // Found a shorter route
                 if (newDistance <

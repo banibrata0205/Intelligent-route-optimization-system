@@ -63,28 +63,32 @@ public class Main {
                 new Edge(
                         college,
                         hospital,
-                        5
+                        5,
+                        60
                 );
 
         Edge collegeToRailway =
                 new Edge(
                         college,
                         railwayStation,
-                        10
+                        10,
+                        60
                 );
 
         Edge hospitalToAirport =
                 new Edge(
                         hospital,
                         airport,
-                        3
+                        3,
+                        60
                 );
 
         Edge railwayToAirport =
                 new Edge(
                         railwayStation,
                         airport,
-                        4
+                        4,
+                        60
                 );
 
 
@@ -199,11 +203,10 @@ public class Main {
 
         System.out.println();
 
-        System.out.println(
-                "Cost: "
-                        + dijkstraResult
-                                .getTotalDistance()
-                        + " km"
+        System.out.printf(
+                "Travel Time: %.2f minutes%n",
+                dijkstraResult
+                        .getTotalTravelTimeMinutes()
         );
 
 
@@ -238,11 +241,10 @@ public class Main {
 
         System.out.println();
 
-        System.out.println(
-                "Cost: "
-                        + aStarResult
-                                .getTotalDistance()
-                        + " km"
+        System.out.printf(
+                "Travel Time: %.2f minutes%n",
+                aStarResult
+                        .getTotalTravelTimeMinutes()
         );
 
 
@@ -252,13 +254,13 @@ public class Main {
 
 
         // =========================================
-        // TRAFFIC CONDITIONS
+        // ROAD INFORMATION
         // =========================================
 
         System.out.println();
 
         System.out.println(
-                "TRAFFIC CONDITIONS"
+                "ROAD INFORMATION"
         );
 
         System.out.println(
