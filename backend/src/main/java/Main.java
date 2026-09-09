@@ -1,5 +1,6 @@
 import algorithm.AStarAlgorithm;
 import algorithm.DijkstraAlgorithm;
+import algorithm.RouteAnalyzer;
 import graph.Graph;
 import model.Edge;
 import model.Node;
@@ -248,6 +249,100 @@ public class Main {
         );
 
 
+        // =========================================
+        // ROUTE ALTERNATIVE ANALYSIS
+        // =========================================
+
+        RouteAnalyzer routeAnalyzer =
+                new RouteAnalyzer();
+
+        RouteResult alternativeResult =
+                routeAnalyzer.findAlternativeRoute(
+                        graph,
+                        1,
+                        4,
+                        dijkstraResult.getPath()
+                );
+
+
+        // =========================================
+        // DISPLAY ROUTE ANALYSIS
+        // =========================================
+
+        System.out.println();
+
+        System.out.println(
+                "================================"
+        );
+
+        System.out.println(
+                "        ROUTE ANALYSIS"
+        );
+
+        System.out.println(
+                "================================"
+        );
+
+
+        // =========================================
+        // SELECTED ROUTE
+        // =========================================
+
+        System.out.println();
+
+        System.out.println(
+                "Selected Route:"
+        );
+
+        printRoute(
+                dijkstraResult
+        );
+
+        System.out.printf(
+                "Travel Time: %.2f minutes%n",
+                dijkstraResult
+                        .getTotalTravelTimeMinutes()
+        );
+
+
+        // =========================================
+        // ALTERNATIVE ROUTE
+        // =========================================
+
+        System.out.println();
+
+        System.out.println(
+                "Alternative Route:"
+        );
+
+        printRoute(
+                alternativeResult
+        );
+
+        System.out.printf(
+                "Travel Time: %.2f minutes%n",
+                alternativeResult
+                        .getTotalTravelTimeMinutes()
+        );
+
+
+        // =========================================
+        // TIME SAVED
+        // =========================================
+
+        double timeSaved =
+                alternativeResult
+                        .getTotalTravelTimeMinutes()
+                -
+                dijkstraResult
+                        .getTotalTravelTimeMinutes();
+
+        System.out.printf(
+                "Time Saved: %.2f minutes%n",
+                timeSaved
+        );
+
+
         System.out.println(
                 "================================"
         );
@@ -286,5 +381,36 @@ public class Main {
         System.out.println(
                 "================================"
         );
+    }
+
+
+    // =========================================
+    // PRINT ROUTE
+    // =========================================
+
+    private static void printRoute(
+            RouteResult result) {
+
+        for (int i = 0;
+             i < result.getPath().size();
+             i++) {
+
+            System.out.print(
+                    result
+                            .getPath()
+                            .get(i)
+                            .getName()
+            );
+
+            if (i <
+                    result.getPath().size() - 1) {
+
+                System.out.print(
+                        " -> "
+                );
+            }
+        }
+
+        System.out.println();
     }
 }
