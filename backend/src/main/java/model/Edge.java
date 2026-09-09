@@ -8,8 +8,8 @@ public class Edge {
     // Base road distance
     private double distance;
 
-    // Traffic multiplier
-    private double trafficMultiplier;
+    // Current traffic condition
+    private TrafficLevel trafficLevel;
 
 
     // =========================================
@@ -25,8 +25,9 @@ public class Edge {
         this.destination = destination;
         this.distance = distance;
 
-        // Default: normal traffic
-        this.trafficMultiplier = 1.0;
+        // Default traffic condition
+        this.trafficLevel =
+                TrafficLevel.NORMAL;
     }
 
 
@@ -46,42 +47,36 @@ public class Edge {
         return distance;
     }
 
-    public double getTrafficMultiplier() {
-        return trafficMultiplier;
+    public TrafficLevel getTrafficLevel() {
+        return trafficLevel;
     }
 
 
     // =========================================
-    // SET TRAFFIC
+    // SET TRAFFIC LEVEL
     // =========================================
 
-    public void setTrafficMultiplier(
-            double trafficMultiplier) {
+    public void setTrafficLevel(
+            TrafficLevel trafficLevel) {
 
-        if (trafficMultiplier < 1.0) {
-            throw new IllegalArgumentException(
-                    "Traffic multiplier cannot be less than 1.0"
-            );
-        }
-
-        this.trafficMultiplier =
-                trafficMultiplier;
+        this.trafficLevel =
+                trafficLevel;
     }
 
 
     // =========================================
-    // EFFECTIVE TRAVEL COST
+    // CALCULATE TRAVEL COST
     // =========================================
 
     public double getTravelCost() {
 
         return distance *
-                trafficMultiplier;
+                trafficLevel.getMultiplier();
     }
 
 
     // =========================================
-    // DISPLAY
+    // DISPLAY EDGE
     // =========================================
 
     @Override
@@ -92,8 +87,10 @@ public class Edge {
                 + destination.getName()
                 + " ("
                 + distance
-                + " km, traffic x"
-                + trafficMultiplier
+                + " km, traffic="
+                + trafficLevel
+                + ", cost="
+                + getTravelCost()
                 + ")";
     }
 }

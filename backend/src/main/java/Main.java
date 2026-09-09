@@ -4,6 +4,7 @@ import graph.Graph;
 import model.Edge;
 import model.Node;
 import model.RouteResult;
+import model.TrafficLevel;
 
 public class Main {
 
@@ -88,20 +89,24 @@ public class Main {
 
 
         // =========================================
-        // ADD TRAFFIC CONDITIONS
+        // SET TRAFFIC CONDITIONS
         // =========================================
 
-        // Heavy traffic
-        collegeToHospital.setTrafficMultiplier(2.0);
+        collegeToHospital.setTrafficLevel(
+                TrafficLevel.HEAVY
+        );
 
-        // Normal traffic
-        collegeToRailway.setTrafficMultiplier(1.0);
+        collegeToRailway.setTrafficLevel(
+                TrafficLevel.NORMAL
+        );
 
-        // Heavy traffic
-        hospitalToAirport.setTrafficMultiplier(2.0);
+        hospitalToAirport.setTrafficLevel(
+                TrafficLevel.HEAVY
+        );
 
-        // Normal traffic
-        railwayToAirport.setTrafficMultiplier(1.0);
+        railwayToAirport.setTrafficLevel(
+                TrafficLevel.NORMAL
+        );
 
 
         // =========================================
@@ -115,7 +120,7 @@ public class Main {
 
 
         // =========================================
-        // DIJKSTRA ALGORITHM
+        // DIJKSTRA
         // =========================================
 
         DijkstraAlgorithm dijkstra =
@@ -130,7 +135,7 @@ public class Main {
 
 
         // =========================================
-        // A* ALGORITHM
+        // A*
         // =========================================
 
         AStarAlgorithm aStar =
@@ -145,13 +150,22 @@ public class Main {
 
 
         // =========================================
-        // DISPLAY ROUTE RESULTS
+        // ROUTE RESULTS
         // =========================================
 
         System.out.println();
-        System.out.println("================================");
-        System.out.println("        ROUTE RESULTS");
-        System.out.println("================================");
+
+        System.out.println(
+                "================================"
+        );
+
+        System.out.println(
+                "        ROUTE RESULTS"
+        );
+
+        System.out.println(
+                "================================"
+        );
 
 
         // =========================================
@@ -231,16 +245,25 @@ public class Main {
                         + " km"
         );
 
-        System.out.println("================================");
+
+        System.out.println(
+                "================================"
+        );
 
 
         // =========================================
-        // DISPLAY TRAFFIC INFORMATION
+        // TRAFFIC CONDITIONS
         // =========================================
 
         System.out.println();
-        System.out.println("TRAFFIC CONDITIONS");
-        System.out.println("================================");
+
+        System.out.println(
+                "TRAFFIC CONDITIONS"
+        );
+
+        System.out.println(
+                "================================"
+        );
 
         System.out.println(
                 collegeToHospital
@@ -258,6 +281,8 @@ public class Main {
                 railwayToAirport
         );
 
-        System.out.println("================================");
+        System.out.println(
+                "================================"
+        );
     }
 }
