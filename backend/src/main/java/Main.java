@@ -7,6 +7,7 @@ import model.Node;
 import model.RouteComparison;
 import model.RouteResult;
 import model.TrafficLevel;
+import traffic.TrafficManager;
 
 public class Main {
 
@@ -95,22 +96,34 @@ public class Main {
 
 
         // =========================================
+        // CREATE TRAFFIC MANAGER
+        // =========================================
+
+        TrafficManager trafficManager =
+                new TrafficManager();
+
+
+        // =========================================
         // INITIAL TRAFFIC CONDITIONS
         // =========================================
 
-        collegeToHospital.updateTraffic(
+        trafficManager.updateRoadTraffic(
+                collegeToHospital,
                 TrafficLevel.HEAVY
         );
 
-        collegeToRailway.updateTraffic(
+        trafficManager.updateRoadTraffic(
+                collegeToRailway,
                 TrafficLevel.NORMAL
         );
 
-        hospitalToAirport.updateTraffic(
+        trafficManager.updateRoadTraffic(
+                hospitalToAirport,
                 TrafficLevel.HEAVY
         );
 
-        railwayToAirport.updateTraffic(
+        trafficManager.updateRoadTraffic(
+                railwayToAirport,
                 TrafficLevel.NORMAL
         );
 
@@ -243,7 +256,11 @@ public class Main {
         );
 
 
-        collegeToRailway.updateTraffic(
+        // Traffic is now changed through
+        // TrafficManager
+
+        trafficManager.updateRoadTraffic(
+                collegeToRailway,
                 TrafficLevel.HEAVY
         );
 
@@ -327,7 +344,7 @@ public class Main {
 
 
         // =========================================
-        // ROUTE COMPARISON AFTER UPDATE
+        // ROUTE COMPARISON
         // =========================================
 
         RouteAnalyzer routeAnalyzer =
@@ -341,6 +358,10 @@ public class Main {
                         updatedDijkstraResult
                 );
 
+
+        // =========================================
+        // UPDATED ROUTE ANALYSIS
+        // =========================================
 
         System.out.println();
 
@@ -397,7 +418,7 @@ public class Main {
 
 
         // =========================================
-        // ROAD INFORMATION
+        // CURRENT ROAD STATUS
         // =========================================
 
         System.out.println();
