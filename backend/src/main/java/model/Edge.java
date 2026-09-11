@@ -31,7 +31,8 @@ public class Edge {
         this.speedKmh = speedKmh;
 
         // Default traffic condition
-        this.trafficLevel = TrafficLevel.NORMAL;
+        this.trafficLevel =
+                TrafficLevel.NORMAL;
     }
 
 
@@ -40,22 +41,27 @@ public class Edge {
     // =========================================
 
     public Node getSource() {
+
         return source;
     }
 
     public Node getDestination() {
+
         return destination;
     }
 
     public double getDistance() {
+
         return distance;
     }
 
     public double getSpeedKmh() {
+
         return speedKmh;
     }
 
     public TrafficLevel getTrafficLevel() {
+
         return trafficLevel;
     }
 
@@ -68,12 +74,27 @@ public class Edge {
             TrafficLevel trafficLevel) {
 
         if (trafficLevel == null) {
+
             throw new IllegalArgumentException(
                     "Traffic level cannot be null"
             );
         }
 
-        this.trafficLevel = trafficLevel;
+        this.trafficLevel =
+                trafficLevel;
+    }
+
+
+    // =========================================
+    // UPDATE TRAFFIC
+    // =========================================
+
+    public void updateTraffic(
+            TrafficLevel newTrafficLevel) {
+
+        setTrafficLevel(
+                newTrafficLevel
+        );
     }
 
 
@@ -111,14 +132,6 @@ public class Edge {
 
     // =========================================
     // CALCULATE TRAFFIC-ADJUSTED COST
-    // =========================================
-    //
-    // This keeps compatibility with the current
-    // Dijkstra and A* implementations.
-    //
-    // Later, we will change the algorithms to
-    // optimize actual travel time.
-    //
     // =========================================
 
     public double getTravelCost() {
