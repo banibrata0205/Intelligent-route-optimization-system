@@ -4,6 +4,7 @@ import algorithm.RouteAnalyzer;
 import graph.Graph;
 import model.Edge;
 import model.Node;
+import model.RouteComparison;
 import model.RouteResult;
 import model.TrafficLevel;
 
@@ -182,27 +183,7 @@ public class Main {
 
         System.out.print("Route: ");
 
-        for (int i = 0;
-             i < dijkstraResult.getPath().size();
-             i++) {
-
-            System.out.print(
-                    dijkstraResult
-                            .getPath()
-                            .get(i)
-                            .getName()
-            );
-
-            if (i <
-                    dijkstraResult
-                            .getPath()
-                            .size() - 1) {
-
-                System.out.print(" -> ");
-            }
-        }
-
-        System.out.println();
+        printRoute(dijkstraResult);
 
         System.out.printf(
                 "Travel Time: %.2f minutes%n",
@@ -220,27 +201,7 @@ public class Main {
 
         System.out.print("Route: ");
 
-        for (int i = 0;
-             i < aStarResult.getPath().size();
-             i++) {
-
-            System.out.print(
-                    aStarResult
-                            .getPath()
-                            .get(i)
-                            .getName()
-            );
-
-            if (i <
-                    aStarResult
-                            .getPath()
-                            .size() - 1) {
-
-                System.out.print(" -> ");
-            }
-        }
-
-        System.out.println();
+        printRoute(aStarResult);
 
         System.out.printf(
                 "Travel Time: %.2f minutes%n",
@@ -250,23 +211,34 @@ public class Main {
 
 
         // =========================================
-        // ROUTE ALTERNATIVE ANALYSIS
+        // ROUTE COMPARISON
         // =========================================
 
         RouteAnalyzer routeAnalyzer =
                 new RouteAnalyzer();
 
-        RouteResult alternativeResult =
-                routeAnalyzer.findAlternativeRoute(
+        RouteComparison comparison =
+                routeAnalyzer.compareRoutes(
                         graph,
                         1,
                         4,
-                        dijkstraResult.getPath()
+                        dijkstraResult
                 );
 
 
         // =========================================
-        // DISPLAY ROUTE ANALYSIS
+        // GET ROUTES FROM COMPARISON
+        // =========================================
+
+        RouteResult selectedRoute =
+                comparison.getSelectedRoute();
+
+        RouteResult alternativeRoute =
+                comparison.getAlternativeRoute();
+
+
+        // =========================================
+        // ROUTE ANALYSIS
         // =========================================
 
         System.out.println();
@@ -294,13 +266,11 @@ public class Main {
                 "Selected Route:"
         );
 
-        printRoute(
-                dijkstraResult
-        );
+        printRoute(selectedRoute);
 
         System.out.printf(
                 "Travel Time: %.2f minutes%n",
-                dijkstraResult
+                selectedRoute
                         .getTotalTravelTimeMinutes()
         );
 
@@ -315,13 +285,11 @@ public class Main {
                 "Alternative Route:"
         );
 
-        printRoute(
-                alternativeResult
-        );
+        printRoute(alternativeRoute);
 
         System.out.printf(
                 "Travel Time: %.2f minutes%n",
-                alternativeResult
+                alternativeRoute
                         .getTotalTravelTimeMinutes()
         );
 
@@ -330,16 +298,9 @@ public class Main {
         // TIME SAVED
         // =========================================
 
-        double timeSaved =
-                alternativeResult
-                        .getTotalTravelTimeMinutes()
-                -
-                dijkstraResult
-                        .getTotalTravelTimeMinutes();
-
         System.out.printf(
                 "Time Saved: %.2f minutes%n",
-                timeSaved
+                comparison.getTimeSavedMinutes()
         );
 
 

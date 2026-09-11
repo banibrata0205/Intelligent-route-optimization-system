@@ -3,12 +3,38 @@ package algorithm;
 import graph.Graph;
 import model.Edge;
 import model.Node;
+import model.RouteComparison;
 import model.RouteResult;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RouteAnalyzer {
+
+    // =========================================
+    // COMPARE ROUTES
+    // =========================================
+
+    public RouteComparison compareRoutes(
+            Graph graph,
+            int sourceId,
+            int destinationId,
+            RouteResult selectedRoute) {
+
+        RouteResult alternativeRoute =
+                findAlternativeRoute(
+                        graph,
+                        sourceId,
+                        destinationId,
+                        selectedRoute.getPath()
+                );
+
+        return new RouteComparison(
+                selectedRoute,
+                alternativeRoute
+        );
+    }
+
 
     // =========================================
     // FIND ALTERNATIVE ROUTE
@@ -48,11 +74,10 @@ public class RouteAnalyzer {
             }
         }
 
-        // Currently we block the first edge
-        // of the selected route.
-        //
-        // This gives us another route from
-        // the same source to the destination.
+
+        // Block the first edge of the
+        // selected route to find an
+        // alternative route.
 
         if (!blockedEdges.isEmpty()) {
 
@@ -75,6 +100,8 @@ public class RouteAnalyzer {
             );
         }
 
+
+        // No alternative route
         return new RouteResult(
                 new ArrayList<>(),
                 Double.POSITIVE_INFINITY
@@ -90,7 +117,9 @@ public class RouteAnalyzer {
             Graph originalGraph,
             Edge edgeToRemove) {
 
-        Graph newGraph = new Graph();
+        Graph newGraph =
+                new Graph();
+
 
         // Copy all nodes
         for (Node node :
@@ -99,7 +128,10 @@ public class RouteAnalyzer {
             newGraph.addNode(node);
         }
 
-        // Copy all edges except the blocked edge
+
+        // Copy all edges except
+        // the blocked edge
+
         for (Node node :
                 originalGraph.getAllNodes()) {
 
