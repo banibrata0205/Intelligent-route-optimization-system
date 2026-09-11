@@ -104,7 +104,7 @@ public class Main {
 
 
         // =========================================
-        // INITIAL TRAFFIC CONDITIONS
+        // INITIAL TRAFFIC
         // =========================================
 
         trafficManager.updateRoadTraffic(
@@ -129,7 +129,7 @@ public class Main {
 
 
         // =========================================
-        // ADD ROADS TO GRAPH
+        // ADD ROADS
         // =========================================
 
         graph.addEdge(collegeToHospital);
@@ -139,7 +139,7 @@ public class Main {
 
 
         // =========================================
-        // CREATE ALGORITHMS
+        // CREATE ROUTING ALGORITHMS
         // =========================================
 
         DijkstraAlgorithm dijkstra =
@@ -153,25 +153,6 @@ public class Main {
         // INITIAL ROUTE
         // =========================================
 
-        RouteResult initialDijkstraResult =
-                dijkstra.findShortestPath(
-                        graph,
-                        1,
-                        4
-                );
-
-        RouteResult initialAStarResult =
-                aStar.findShortestPath(
-                        graph,
-                        1,
-                        4
-                );
-
-
-        // =========================================
-        // INITIAL ROUTE RESULTS
-        // =========================================
-
         System.out.println();
 
         System.out.println(
@@ -179,56 +160,34 @@ public class Main {
         );
 
         System.out.println(
-                "      INITIAL ROUTE"
+                "       TRAFFIC SIMULATION"
         );
 
         System.out.println(
                 "================================"
         );
 
-        System.out.println();
-
-        System.out.println(
-                "Dijkstra:"
-        );
-
-        System.out.print(
-                "Route: "
-        );
-
-        printRoute(
-                initialDijkstraResult
-        );
-
-        System.out.printf(
-                "Travel Time: %.2f minutes%n",
-                initialDijkstraResult
-                        .getTotalTravelTimeMinutes()
-        );
 
         System.out.println();
 
         System.out.println(
-                "A*:"
+                "Initial Traffic:"
         );
 
-        System.out.print(
-                "Route: "
+        System.out.println(
+                "College -> Railway Station = NORMAL"
         );
 
-        printRoute(
-                initialAStarResult
-        );
 
-        System.out.printf(
-                "Travel Time: %.2f minutes%n",
-                initialAStarResult
-                        .getTotalTravelTimeMinutes()
+        displayRoutes(
+                graph,
+                dijkstra,
+                aStar
         );
 
 
         // =========================================
-        // DYNAMIC TRAFFIC UPDATE
+        // UPDATE 1: HEAVY
         // =========================================
 
         System.out.println();
@@ -238,7 +197,7 @@ public class Main {
         );
 
         System.out.println(
-                "     TRAFFIC UPDATE"
+                "       TRAFFIC UPDATE 1"
         );
 
         System.out.println(
@@ -248,16 +207,13 @@ public class Main {
         System.out.println();
 
         System.out.println(
-                "College -> Railway Station"
+                "College -> Railway Station:"
         );
 
         System.out.println(
-                "Traffic: NORMAL -> HEAVY"
+                "NORMAL -> HEAVY"
         );
 
-
-        // Traffic is now changed through
-        // TrafficManager
 
         trafficManager.updateRoadTraffic(
                 collegeToRailway,
@@ -265,27 +221,15 @@ public class Main {
         );
 
 
-        // =========================================
-        // RECALCULATE ROUTE
-        // =========================================
-
-        RouteResult updatedDijkstraResult =
-                dijkstra.findShortestPath(
-                        graph,
-                        1,
-                        4
-                );
-
-        RouteResult updatedAStarResult =
-                aStar.findShortestPath(
-                        graph,
-                        1,
-                        4
-                );
+        displayRoutes(
+                graph,
+                dijkstra,
+                aStar
+        );
 
 
         // =========================================
-        // UPDATED ROUTE RESULTS
+        // UPDATE 2: SEVERE
         // =========================================
 
         System.out.println();
@@ -295,7 +239,7 @@ public class Main {
         );
 
         System.out.println(
-                "      UPDATED ROUTE"
+                "       TRAFFIC UPDATE 2"
         );
 
         System.out.println(
@@ -305,62 +249,29 @@ public class Main {
         System.out.println();
 
         System.out.println(
-                "Dijkstra:"
+                "College -> Railway Station:"
         );
-
-        System.out.print(
-                "Route: "
-        );
-
-        printRoute(
-                updatedDijkstraResult
-        );
-
-        System.out.printf(
-                "Travel Time: %.2f minutes%n",
-                updatedDijkstraResult
-                        .getTotalTravelTimeMinutes()
-        );
-
-        System.out.println();
 
         System.out.println(
-                "A*:"
+                "HEAVY -> SEVERE"
         );
 
-        System.out.print(
-                "Route: "
+
+        trafficManager.updateRoadTraffic(
+                collegeToRailway,
+                TrafficLevel.SEVERE
         );
 
-        printRoute(
-                updatedAStarResult
-        );
 
-        System.out.printf(
-                "Travel Time: %.2f minutes%n",
-                updatedAStarResult
-                        .getTotalTravelTimeMinutes()
+        displayRoutes(
+                graph,
+                dijkstra,
+                aStar
         );
 
 
         // =========================================
-        // ROUTE COMPARISON
-        // =========================================
-
-        RouteAnalyzer routeAnalyzer =
-                new RouteAnalyzer();
-
-        RouteComparison comparison =
-                routeAnalyzer.compareRoutes(
-                        graph,
-                        1,
-                        4,
-                        updatedDijkstraResult
-                );
-
-
-        // =========================================
-        // UPDATED ROUTE ANALYSIS
+        // UPDATE 3: NORMAL
         // =========================================
 
         System.out.println();
@@ -370,7 +281,7 @@ public class Main {
         );
 
         System.out.println(
-                "    UPDATED ROUTE ANALYSIS"
+                "       TRAFFIC UPDATE 3"
         );
 
         System.out.println(
@@ -380,45 +291,29 @@ public class Main {
         System.out.println();
 
         System.out.println(
-                "Selected Route:"
+                "College -> Railway Station:"
         );
-
-        printRoute(
-                comparison.getSelectedRoute()
-        );
-
-        System.out.printf(
-                "Travel Time: %.2f minutes%n",
-                comparison
-                        .getSelectedRoute()
-                        .getTotalTravelTimeMinutes()
-        );
-
-        System.out.println();
 
         System.out.println(
-                "Alternative Route:"
+                "SEVERE -> NORMAL"
         );
 
-        printRoute(
-                comparison.getAlternativeRoute()
+
+        trafficManager.updateRoadTraffic(
+                collegeToRailway,
+                TrafficLevel.NORMAL
         );
 
-        System.out.printf(
-                "Travel Time: %.2f minutes%n",
-                comparison
-                        .getAlternativeRoute()
-                        .getTotalTravelTimeMinutes()
-        );
 
-        System.out.printf(
-                "Time Saved: %.2f minutes%n",
-                comparison.getTimeSavedMinutes()
+        displayRoutes(
+                graph,
+                dijkstra,
+                aStar
         );
 
 
         // =========================================
-        // CURRENT ROAD STATUS
+        // FINAL ROAD STATUS
         // =========================================
 
         System.out.println();
@@ -428,7 +323,7 @@ public class Main {
         );
 
         System.out.println(
-                "      CURRENT ROAD STATUS"
+                "       FINAL ROAD STATUS"
         );
 
         System.out.println(
@@ -453,6 +348,132 @@ public class Main {
 
         System.out.println(
                 "================================"
+        );
+    }
+
+
+    // =========================================
+    // DISPLAY CURRENT ROUTES
+    // =========================================
+
+    private static void displayRoutes(
+            Graph graph,
+            DijkstraAlgorithm dijkstra,
+            AStarAlgorithm aStar) {
+
+        RouteResult dijkstraResult =
+                dijkstra.findShortestPath(
+                        graph,
+                        1,
+                        4
+                );
+
+        RouteResult aStarResult =
+                aStar.findShortestPath(
+                        graph,
+                        1,
+                        4
+                );
+
+
+        // =========================================
+        // DIJKSTRA
+        // =========================================
+
+        System.out.println();
+
+        System.out.println(
+                "Dijkstra:"
+        );
+
+        System.out.print(
+                "Route: "
+        );
+
+        printRoute(
+                dijkstraResult
+        );
+
+        System.out.printf(
+                "Travel Time: %.2f minutes%n",
+                dijkstraResult
+                        .getTotalTravelTimeMinutes()
+        );
+
+
+        // =========================================
+        // A*
+        // =========================================
+
+        System.out.println();
+
+        System.out.println(
+                "A*:"
+        );
+
+        System.out.print(
+                "Route: "
+        );
+
+        printRoute(
+                aStarResult
+        );
+
+        System.out.printf(
+                "Travel Time: %.2f minutes%n",
+                aStarResult
+                        .getTotalTravelTimeMinutes()
+        );
+
+
+        // =========================================
+        // ROUTE COMPARISON
+        // =========================================
+
+        RouteAnalyzer routeAnalyzer =
+                new RouteAnalyzer();
+
+        RouteComparison comparison =
+                routeAnalyzer.compareRoutes(
+                        graph,
+                        1,
+                        4,
+                        dijkstraResult
+                );
+
+
+        System.out.println();
+
+        System.out.println(
+                "Selected Route:"
+        );
+
+        printRoute(
+                comparison.getSelectedRoute()
+        );
+
+        System.out.printf(
+                "Time: %.2f minutes%n",
+                comparison
+                        .getSelectedRoute()
+                        .getTotalTravelTimeMinutes()
+        );
+
+        System.out.println();
+
+        System.out.println(
+                "Alternative Route:"
+        );
+
+        printRoute(
+                comparison.getAlternativeRoute()
+        );
+
+        System.out.printf(
+                "Time: %.2f minutes%n",
+                comparison
+                        .getAlternativeRoute()
+                        .getTotalTravelTimeMinutes()
         );
     }
 
