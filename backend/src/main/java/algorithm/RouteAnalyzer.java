@@ -37,7 +37,7 @@ public class RouteAnalyzer {
 
 
     // =========================================
-    // FIND ALTERNATIVE ROUTE
+    // FIND BEST ALTERNATIVE ROUTE
     // =========================================
 
     public RouteResult findAlternativeRoute(
@@ -46,10 +46,17 @@ public class RouteAnalyzer {
             int destinationId,
             List<Node> selectedRoute) {
 
-        List<Edge> blockedEdges =
-                new ArrayList<>();
+        RouteResult bestAlternative =
+                new RouteResult(
+                        new ArrayList<>(),
+                        Double.POSITIVE_INFINITY
+                );
 
-        // Find the edges used by the selected route
+
+        // =========================================
+        // TRY BLOCKING EACH EDGE
+        // =========================================
+
         for (int i = 0;
              i < selectedRoute.size() - 1;
              i++) {
@@ -60,6 +67,11 @@ public class RouteAnalyzer {
             Node nextNode =
                     selectedRoute.get(i + 1);
 
+
+            // =========================================
+            // FIND EDGE BETWEEN TWO NODES
+            // =========================================
+
             for (Edge edge :
                     graph.getNeighbors(
                             currentNode.getId()
@@ -68,44 +80,66 @@ public class RouteAnalyzer {
                 if (edge.getDestination().getId()
                         == nextNode.getId()) {
 
-                    blockedEdges.add(edge);
+
+                    // =========================================
+                    // CREATE ALTERNATIVE GRAPH
+                    // =========================================
+
+                    Graph alternativeGraph =
+                            createGraphWithoutEdge(
+                                    graph,
+                                    edge
+                            );
+
+
+                    // =========================================
+                    // FIND CANDIDATE ROUTE
+                    // =========================================
+
+                    DijkstraAlgorithm dijkstra =
+                            new DijkstraAlgorithm();
+
+                    RouteResult candidateRoute =
+                            dijkstra.findShortestPath(
+                                    alternativeGraph,
+                                    sourceId,
+                                    destinationId
+                            );
+
+
+                    // =========================================
+                    // CHECK THAT ROUTE IS DIFFERENT
+                    // =========================================
+
+                    boolean differentRoute =
+                            !candidateRoute
+                                    .getPath()
+                                    .equals(selectedRoute);
+
+
+                    // =========================================
+                    // CHECK IF CANDIDATE IS BETTER
+                    // =========================================
+
+                    if (differentRoute
+                            &&
+                            candidateRoute
+                                    .getTotalTravelTimeHours()
+                                    <
+                                    bestAlternative
+                                            .getTotalTravelTimeHours()) {
+
+                        bestAlternative =
+                                candidateRoute;
+                    }
+
                     break;
                 }
             }
         }
 
 
-        // Block the first edge of the
-        // selected route to find an
-        // alternative route.
-
-        if (!blockedEdges.isEmpty()) {
-
-            Edge blockedEdge =
-                    blockedEdges.get(0);
-
-            Graph alternativeGraph =
-                    createGraphWithoutEdge(
-                            graph,
-                            blockedEdge
-                    );
-
-            DijkstraAlgorithm dijkstra =
-                    new DijkstraAlgorithm();
-
-            return dijkstra.findShortestPath(
-                    alternativeGraph,
-                    sourceId,
-                    destinationId
-            );
-        }
-
-
-        // No alternative route
-        return new RouteResult(
-                new ArrayList<>(),
-                Double.POSITIVE_INFINITY
-        );
+        return bestAlternative;
     }
 
 
@@ -121,7 +155,10 @@ public class RouteAnalyzer {
                 new Graph();
 
 
-        // Copy all nodes
+        // =========================================
+        // COPY ALL NODES
+        // =========================================
+
         for (Node node :
                 originalGraph.getAllNodes()) {
 
@@ -129,8 +166,9 @@ public class RouteAnalyzer {
         }
 
 
-        // Copy all edges except
-        // the blocked edge
+        // =========================================
+        // COPY ALL EDGES EXCEPT BLOCKED EDGE
+        // =========================================
 
         for (Node node :
                 originalGraph.getAllNodes()) {
@@ -150,9 +188,13 @@ public class RouteAnalyzer {
                                     edge.getSpeedKmh()
                             );
 
+
+                    // Preserve traffic condition
+
                     copiedEdge.setTrafficLevel(
                             edge.getTrafficLevel()
                     );
+
 
                     newGraph.addEdge(
                             copiedEdge
