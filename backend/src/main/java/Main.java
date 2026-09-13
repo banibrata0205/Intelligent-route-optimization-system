@@ -5,13 +5,18 @@ import algorithm.AStarAlgorithm;
 import algorithm.DijkstraAlgorithm;
 import algorithm.MultiStopOptimizer;
 import algorithm.RouteAnalyzer;
+import algorithm.RouteExplanationAnalyzer;
+
 import graph.Graph;
+
 import model.Edge;
 import model.MultiStopRoute;
 import model.Node;
 import model.RouteComparison;
+import model.RouteExplanation;
 import model.RouteResult;
 import model.TrafficLevel;
+
 import traffic.TrafficManager;
 
 public class Main {
@@ -177,7 +182,9 @@ public class Main {
         // DISPLAY GRAPH
         // ==========================================
 
-        System.out.println("===== ROAD NETWORK =====");
+        System.out.println(
+                "===== ROAD NETWORK ====="
+        );
 
         graph.displayGraph();
 
@@ -190,6 +197,16 @@ public class Main {
 
         AStarAlgorithm aStar =
                 new AStarAlgorithm();
+
+        RouteAnalyzer routeAnalyzer =
+                new RouteAnalyzer();
+
+        TrafficManager trafficManager =
+                new TrafficManager();
+
+        RouteExplanationAnalyzer
+                explanationAnalyzer =
+                new RouteExplanationAnalyzer();
 
         // ==========================================
         // INITIAL ROUTING
@@ -220,16 +237,13 @@ public class Main {
         );
 
         // ==========================================
-        // ALTERNATIVE ROUTE ANALYSIS
+        // INITIAL ALTERNATIVE ROUTE
         // ==========================================
 
         System.out.println();
         System.out.println(
                 "===== ALTERNATIVE ROUTE ANALYSIS ====="
         );
-
-        RouteAnalyzer routeAnalyzer =
-                new RouteAnalyzer();
 
         RouteComparison comparison =
                 routeAnalyzer.compareRoutes(
@@ -239,79 +253,27 @@ public class Main {
                         dijkstraRoute
                 );
 
-        System.out.println(
-                "Selected route:"
-        );
-
-        displayPath(
+        displayRouteComparison(
                 comparison
-                        .getSelectedRoute()
-                        .getPath()
         );
 
-        System.out.printf(
-                "Travel time: %.2f minutes%n",
-                comparison
-                        .getSelectedRoute()
-                        .getTotalTravelTimeMinutes()
-        );
-
-        System.out.println();
-
-        System.out.println(
-                "Alternative route:"
-        );
-
-        if (comparison
-                .getAlternativeRoute()
-                .getPath()
-                .isEmpty()) {
-
-            System.out.println(
-                    "No alternative route available."
-            );
-
-        } else {
-
-            displayPath(
-                    comparison
-                            .getAlternativeRoute()
-                            .getPath()
-            );
-
-            System.out.printf(
-                    "Travel time: %.2f minutes%n",
-                    comparison
-                            .getAlternativeRoute()
-                            .getTotalTravelTimeMinutes()
-            );
-
-            System.out.printf(
-                    "Time difference: %.2f minutes%n",
-                    comparison.getTimeSavedMinutes()
-            );
-        }
-
         // ==========================================
-        // CREATE TRAFFIC MANAGER
-        // ==========================================
-
-        TrafficManager trafficManager =
-                new TrafficManager();
-
-        // ==========================================
-        // TRAFFIC UPDATE
-        // COLLEGE -> RAILWAY
+        // TRAFFIC UPDATE 1
+        // COLLEGE <-> HOSPITAL
         // NORMAL -> HEAVY
         // ==========================================
 
         System.out.println();
         System.out.println(
-                "===== TRAFFIC UPDATE: COLLEGE -> RAILWAY: NORMAL -> HEAVY ====="
+                "===== TRAFFIC UPDATE: "
+                        + "COLLEGE <-> HOSPITAL: "
+                        + "NORMAL -> HEAVY ====="
         );
 
-        trafficManager.updateRoadTraffic(
-                collegeToRailway,
+        trafficManager.updateBidirectionalTraffic(
+                graph,
+                college.getId(),
+                hospital.getId(),
                 TrafficLevel.HEAVY
         );
 
@@ -334,18 +296,40 @@ public class Main {
                 aStarRoute
         );
 
+        RouteResult heavyAlternativeRoute =
+                routeAnalyzer.findAlternativeRoute(
+                        graph,
+                        college.getId(),
+                        airport.getId(),
+                        dijkstraRoute.getPath()
+                );
+
+        RouteExplanation heavyExplanation =
+                explanationAnalyzer.explainRoute(
+                        graph,
+                        dijkstraRoute,
+                        heavyAlternativeRoute
+                );
+
+        heavyExplanation.displayExplanation();
+
         // ==========================================
-        // TRAFFIC UPDATE
+        // TRAFFIC UPDATE 2
+        // COLLEGE <-> HOSPITAL
         // HEAVY -> SEVERE
         // ==========================================
 
         System.out.println();
         System.out.println(
-                "===== TRAFFIC UPDATE: COLLEGE -> RAILWAY: HEAVY -> SEVERE ====="
+                "===== TRAFFIC UPDATE: "
+                        + "COLLEGE <-> HOSPITAL: "
+                        + "HEAVY -> SEVERE ====="
         );
 
-        trafficManager.updateRoadTraffic(
-                collegeToRailway,
+        trafficManager.updateBidirectionalTraffic(
+                graph,
+                college.getId(),
+                hospital.getId(),
                 TrafficLevel.SEVERE
         );
 
@@ -368,18 +352,40 @@ public class Main {
                 aStarRoute
         );
 
+        RouteResult severeAlternativeRoute =
+                routeAnalyzer.findAlternativeRoute(
+                        graph,
+                        college.getId(),
+                        airport.getId(),
+                        dijkstraRoute.getPath()
+                );
+
+        RouteExplanation severeExplanation =
+                explanationAnalyzer.explainRoute(
+                        graph,
+                        dijkstraRoute,
+                        severeAlternativeRoute
+                );
+
+        severeExplanation.displayExplanation();
+
         // ==========================================
-        // TRAFFIC UPDATE
+        // TRAFFIC UPDATE 3
+        // COLLEGE <-> HOSPITAL
         // SEVERE -> NORMAL
         // ==========================================
 
         System.out.println();
         System.out.println(
-                "===== TRAFFIC UPDATE: COLLEGE -> RAILWAY: SEVERE -> NORMAL ====="
+                "===== TRAFFIC UPDATE: "
+                        + "COLLEGE <-> HOSPITAL: "
+                        + "SEVERE -> NORMAL ====="
         );
 
-        trafficManager.updateRoadTraffic(
-                collegeToRailway,
+        trafficManager.updateBidirectionalTraffic(
+                graph,
+                college.getId(),
+                hospital.getId(),
                 TrafficLevel.NORMAL
         );
 
@@ -519,6 +525,67 @@ public class Main {
                 "Travel time: %.2f minutes%n",
                 aStarRoute
                         .getTotalTravelTimeMinutes()
+        );
+    }
+
+    // ==========================================
+    // DISPLAY ROUTE COMPARISON
+    // ==========================================
+
+    private static void displayRouteComparison(
+            RouteComparison comparison) {
+
+        System.out.println(
+                "Selected route:"
+        );
+
+        displayPath(
+                comparison
+                        .getSelectedRoute()
+                        .getPath()
+        );
+
+        System.out.printf(
+                "Travel time: %.2f minutes%n",
+                comparison
+                        .getSelectedRoute()
+                        .getTotalTravelTimeMinutes()
+        );
+
+        System.out.println();
+
+        System.out.println(
+                "Alternative route:"
+        );
+
+        if (comparison
+                .getAlternativeRoute()
+                .getPath()
+                .isEmpty()) {
+
+            System.out.println(
+                    "No alternative route available."
+            );
+
+            return;
+        }
+
+        displayPath(
+                comparison
+                        .getAlternativeRoute()
+                        .getPath()
+        );
+
+        System.out.printf(
+                "Travel time: %.2f minutes%n",
+                comparison
+                        .getAlternativeRoute()
+                        .getTotalTravelTimeMinutes()
+        );
+
+        System.out.printf(
+                "Time difference: %.2f minutes%n",
+                comparison.getTimeSavedMinutes()
         );
     }
 

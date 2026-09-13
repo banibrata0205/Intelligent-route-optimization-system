@@ -5,7 +5,13 @@ import model.Edge;
 import model.Node;
 import model.RouteResult;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 public class AStarAlgorithm {
 
@@ -14,39 +20,14 @@ public class AStarAlgorithm {
             int sourceId,
             int destinationId) {
 
-        // =========================================
-        // gScore
-        // Actual travel time from source
-        // to each node, measured in hours
-        // =========================================
-
         Map<Integer, Double> gScore =
                 new HashMap<>();
-
-
-        // =========================================
-        // fScore
-        // Estimated total travel time
-        // fScore = gScore + heuristic
-        // =========================================
 
         Map<Integer, Double> fScore =
                 new HashMap<>();
 
-
-        // =========================================
-        // previous
-        // Used to reconstruct the route
-        // =========================================
-
         Map<Integer, Integer> previous =
                 new HashMap<>();
-
-
-        // =========================================
-        // PRIORITY QUEUE
-        // Lowest estimated travel time first
-        // =========================================
 
         PriorityQueue<NodeDistance> openSet =
                 new PriorityQueue<>(
@@ -55,16 +36,15 @@ public class AStarAlgorithm {
                         )
                 );
 
-
         Node destination =
                 graph.getNode(destinationId);
 
-
-        // =========================================
+        // ==========================================
         // INITIALIZE SCORES
-        // =========================================
+        // ==========================================
 
-        for (Node node : graph.getAllNodes()) {
+        for (Node node :
+                graph.getAllNodes()) {
 
             gScore.put(
                     node.getId(),
@@ -77,16 +57,11 @@ public class AStarAlgorithm {
             );
         }
 
-
-        // =========================================
-        // STARTING NODE
-        // =========================================
-
+        // Starting node
         gScore.put(
                 sourceId,
                 0.0
         );
-
 
         fScore.put(
                 sourceId,
@@ -96,7 +71,6 @@ public class AStarAlgorithm {
                 )
         );
 
-
         openSet.add(
                 new NodeDistance(
                         sourceId,
@@ -104,10 +78,9 @@ public class AStarAlgorithm {
                 )
         );
 
-
-        // =========================================
+        // ==========================================
         // A* SEARCH
-        // =========================================
+        // ==========================================
 
         while (!openSet.isEmpty()) {
 
@@ -117,82 +90,68 @@ public class AStarAlgorithm {
             int currentId =
                     current.getNodeId();
 
+            double currentScore =
+                    current.getScore();
 
-            // =====================================
-            // DESTINATION REACHED
-            // =====================================
+            // Ignore stale priority-queue entries
+            if (currentScore >
+                    fScore.get(currentId)) {
 
-            if (currentId == destinationId) {
-                break;
+                continue;
             }
 
-
-            // =====================================
-            // CHECK NEIGHBORING ROADS
-            // =====================================
+            // Do NOT stop immediately when the
+            // destination is reached.
+            //
+            // We continue processing the queue
+            // so that better paths can still be
+            // discovered.
 
             for (Edge edge :
-                    graph.getNeighbors(currentId)) {
+                    graph.getNeighbors(
+                            currentId
+                    )) {
 
                 int neighborId =
                         edge.getDestination()
                                 .getId();
 
-
-                // =================================
-                // ACTUAL TRAVEL TIME
-                // =================================
-
+                // Current path cost + edge travel time
                 double tentativeGScore =
                         gScore.get(currentId)
                                 + edge.getTravelTimeHours();
 
-
-                // =================================
-                // FOUND A BETTER ROUTE
-                // =================================
-
+                // Found a better route to neighbor
                 if (tentativeGScore <
                         gScore.get(neighborId)) {
 
-                    // Remember previous node
                     previous.put(
                             neighborId,
                             currentId
                     );
 
-
-                    // Update actual travel time
                     gScore.put(
                             neighborId,
                             tentativeGScore
                     );
 
-
-                    // Calculate heuristic
-                    double hScore =
+                    double heuristicScore =
                             heuristic(
-                                    graph.getNode(neighborId),
+                                    graph.getNode(
+                                            neighborId
+                                    ),
                                     destination
                             );
 
-
-                    // =================================
-                    // f(n) = g(n) + h(n)
-                    // =================================
-
                     double estimatedTotal =
                             tentativeGScore
-                                    + hScore;
-
+                                    + heuristicScore;
 
                     fScore.put(
                             neighborId,
                             estimatedTotal
                     );
 
-
-                    // Add to priority queue
                     openSet.add(
                             new NodeDistance(
                                     neighborId,
@@ -203,10 +162,9 @@ public class AStarAlgorithm {
             }
         }
 
-
-        // =========================================
-        // RECONSTRUCT PATH
-        // =========================================
+        // ==========================================
+        // BUILD PATH
+        // ==========================================
 
         List<Node> path =
                 new ArrayList<>();
@@ -214,11 +172,7 @@ public class AStarAlgorithm {
         Integer current =
                 destinationId;
 
-
-        // =========================================
-        // NO ROUTE FOUND
-        // =========================================
-
+        // Destination is unreachable
         if (!previous.containsKey(current)
                 && current != sourceId) {
 
@@ -227,11 +181,6 @@ public class AStarAlgorithm {
                     Double.POSITIVE_INFINITY
             );
         }
-
-
-        // =========================================
-        // BUILD PATH BACKWARDS
-        // =========================================
 
         while (current != null) {
 
@@ -243,14 +192,11 @@ public class AStarAlgorithm {
                     previous.get(current);
         }
 
-
-        // Reverse the path
         Collections.reverse(path);
 
-
-        // =========================================
+        // ==========================================
         // RETURN RESULT
-        // =========================================
+        // ==========================================
 
         return new RouteResult(
                 path,
@@ -258,19 +204,9 @@ public class AStarAlgorithm {
         );
     }
 
-
-    // =============================================
+    // ==========================================
     // HEURISTIC
-    // =============================================
-    //
-    // Calculates an optimistic estimate of the
-    // remaining travel time.
-    //
-    // Haversine distance → kilometers
-    // Optimistic speed → 60 km/h
-    // Result → hours
-    //
-    // =============================================
+    // ==========================================
 
     private double heuristic(
             Node current,
@@ -282,31 +218,42 @@ public class AStarAlgorithm {
                         destination
                 );
 
-
-        // Optimistic speed.
-        // We assume the vehicle can travel at
-        // 60 km/h for the heuristic.
+        /*
+         * The roads in our current model have
+         * a maximum speed of 50 km/h.
+         *
+         * Traffic only decreases the effective
+         * speed:
+         *
+         * NORMAL   = 50.00 km/h
+         * LIGHT    = 41.67 km/h
+         * MODERATE = 33.33 km/h
+         * HEAVY    = 25.00 km/h
+         * SEVERE   = 16.67 km/h
+         *
+         * Therefore 50 km/h is the fastest
+         * possible travel speed in our model.
+         *
+         * Distance / maximum speed gives an
+         * optimistic lower bound on travel time.
+         */
 
         double optimisticSpeedKmh =
-                60.0;
-
-
-        // Convert distance to estimated hours
+                50.0;
 
         return distanceKm /
                 optimisticSpeedKmh;
     }
 
-
-    // =============================================
-    // NODE + SCORE
-    // =============================================
+    // ==========================================
+    // PRIORITY QUEUE NODE
+    // ==========================================
 
     private static class NodeDistance {
 
         private int nodeId;
-        private double score;
 
+        private double score;
 
         public NodeDistance(
                 int nodeId,
@@ -316,13 +263,13 @@ public class AStarAlgorithm {
             this.score = score;
         }
 
-
         public int getNodeId() {
+
             return nodeId;
         }
 
-
         public double getScore() {
+
             return score;
         }
     }
