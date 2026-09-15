@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+         http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Project information -->
+    <groupId>com.banibrata</groupId>
+
+    <artifactId>intelligent-route-optimization-system</artifactId>
+
+    <version>1.0-SNAPSHOT</version>
+
+
+    <!-- Java configuration -->
+    <properties>
+
+        <maven.compiler.source>25</maven.compiler.source>
+
+        <maven.compiler.target>25</maven.compiler.target>
+
+        <maven.compiler.release>25</maven.compiler.release>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    </properties>
+
+
+    <!-- Dependencies -->
+    <dependencies>
+
+        <!-- OpenStreetMap PBF reader -->
+        <dependency>
+
+            <groupId>org.openstreetmap.osmosis</groupId>
+
+            <artifactId>osmosis-pbf2</artifactId>
+
+            <version>0.49.2</version>
+
+        </dependency>
+
+
+        <!-- Osmosis core API:
+             Sink, EntityContainer, RunnableSource, etc. -->
+        <dependency>
+
+            <groupId>org.openstreetmap.osmosis</groupId>
+
+            <artifactId>osmosis-core</artifactId>
+
+            <version>0.49.2</version>
+
+        </dependency>
+
+    </dependencies>
+
+
+    <!-- Maven build configuration -->
+    <build>
+
+        <!-- Existing Java source directory -->
+        <sourceDirectory>
+            backend/src/main/java
+        </sourceDirectory>
+
+    </build>
+
+</project>
