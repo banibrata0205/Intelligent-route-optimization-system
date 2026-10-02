@@ -75,5 +75,27 @@ public class Graph {
     }
    public List<Node> getAllNodes() {
     return new ArrayList<>(nodes.values());
-} 
+} public double getMaximumSpeedKmh() {
+
+    double maximumSpeed = 0.0;
+
+    for (Node node : nodes.values()) {
+
+        for (Edge edge :
+                adjacencyList.getOrDefault(
+                        node.getId(),
+                        new ArrayList<>()
+                )) {
+
+            if (edge.getSpeedKmh()
+                    > maximumSpeed) {
+
+                maximumSpeed =
+                        edge.getSpeedKmh();
+            }
+        }
+    }
+
+    return maximumSpeed;
+}
 }

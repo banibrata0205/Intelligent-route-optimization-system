@@ -5,17 +5,27 @@ import java.util.List;
 
 public class OsmRoad {
 
+    // OSM Way ID
     private long osmWayId;
 
+    // Road classification
     private String highwayType;
 
+    // Road name
     private String roadName;
 
+    // Ordered OSM node IDs
     private List<Long> nodeIds;
 
+    // Total road length in kilometers
     private double totalDistanceKm;
 
+    // Whether the road is one-way
     private boolean oneWay;
+
+    // OSM speed limit in km/h
+    // null means maxspeed was not available
+    private Double maxSpeedKmh;
 
     public OsmRoad(
             long osmWayId,
@@ -23,9 +33,11 @@ public class OsmRoad {
             String roadName,
             List<Long> nodeIds,
             double totalDistanceKm,
-            boolean oneWay) {
+            boolean oneWay,
+            Double maxSpeedKmh) {
 
-        this.osmWayId = osmWayId;
+        this.osmWayId =
+                osmWayId;
 
         this.highwayType =
                 highwayType;
@@ -41,6 +53,9 @@ public class OsmRoad {
 
         this.oneWay =
                 oneWay;
+
+        this.maxSpeedKmh =
+                maxSpeedKmh;
     }
 
     public long getOsmWayId() {
@@ -73,11 +88,38 @@ public class OsmRoad {
         return oneWay;
     }
 
+    public Double getMaxSpeedKmh() {
+
+        return maxSpeedKmh;
+    }
+
+    public boolean hasMaxSpeed() {
+
+        return maxSpeedKmh != null;
+    }
+
     @Override
     public String toString() {
 
+        String speedText;
+
+        if (maxSpeedKmh == null) {
+
+            speedText =
+                    "not available";
+
+        } else {
+
+            speedText =
+                    String.format(
+                            "%.1f km/h",
+                            maxSpeedKmh
+                    );
+        }
+
         return "OsmRoad{" +
-                "osmWayId=" + osmWayId +
+                "osmWayId=" +
+                osmWayId +
                 ", highwayType='" +
                 highwayType + '\'' +
                 ", roadName='" +
@@ -91,6 +133,8 @@ public class OsmRoad {
                 ) +
                 ", oneWay=" +
                 oneWay +
+                ", maxSpeed=" +
+                speedText +
                 '}';
     }
 }

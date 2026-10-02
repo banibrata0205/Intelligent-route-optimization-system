@@ -283,6 +283,9 @@ public class OsmPbfReader {
         boolean oneWay =
                 isOneWay(way);
 
+        Double maxSpeedKmh =
+                getMaxSpeedKmh(way);
+
         List<Long> nodeIds =
                 new ArrayList<>();
 
@@ -319,7 +322,8 @@ public class OsmPbfReader {
                         roadName,
                         nodeIds,
                         totalDistanceKm,
-                        oneWay
+                        oneWay,
+                        maxSpeedKmh
                 );
 
         osmRoads.add(
@@ -433,6 +437,101 @@ public class OsmPbfReader {
         }
 
         return false;
+    }
+
+    // ---------------------------------------------------------
+    // Read maxspeed tag
+    // ---------------------------------------------------------
+
+    private Double getMaxSpeedKmh(
+            Way way) {
+
+        for (Tag tag :
+                way.getTags()) {
+
+            if ("maxspeed".equals(
+                    tag.getKey()
+            )) {
+
+                return parseMaxSpeed(
+                        tag.getValue()
+                );
+            }
+        }
+
+        return null;
+    }
+
+    // ---------------------------------------------------------
+    // Convert maxspeed value to km/h
+    // ---------------------------------------------------------
+
+    private Double parseMaxSpeed(
+            String value) {
+
+        if (value == null
+                || value.trim().isEmpty()) {
+
+            return null;
+        }
+
+        String speed =
+                value.trim()
+                        .toLowerCase();
+
+        try {
+
+            // Example: "50"
+            if (speed.matches(
+                    "\\d+(\\.\\d+)?"
+            )) {
+
+                return Double.parseDouble(
+                        speed
+                );
+            }
+
+            // Example: "50 km/h"
+            if (speed.contains(
+                    "km/h"
+            )) {
+
+                String number =
+                        speed.replace(
+                                "km/h",
+                                ""
+                        ).trim();
+
+                return Double.parseDouble(
+                        number
+                );
+            }
+
+            // Example: "30 mph"
+            if (speed.contains(
+                    "mph"
+            )) {
+
+                String number =
+                        speed.replace(
+                                "mph",
+                                ""
+                        ).trim();
+
+                double mph =
+                        Double.parseDouble(
+                                number
+                        );
+
+                return mph * 1.60934;
+            }
+
+        } catch (NumberFormatException e) {
+
+            return null;
+        }
+
+        return null;
     }
 
     // ---------------------------------------------------------

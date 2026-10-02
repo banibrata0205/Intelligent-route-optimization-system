@@ -22,6 +22,10 @@ public class OsmGraphBuilder {
                 nodeMapper;
     }
 
+    // ---------------------------------------------------------
+    // Build complete graph
+    // ---------------------------------------------------------
+
     public Graph buildGraph(
             List<OsmRoad> roads,
             Map<Long, org.openstreetmap.osmosis.core.domain.v0_6.Node> osmNodes) {
@@ -29,19 +33,12 @@ public class OsmGraphBuilder {
         Graph graph =
                 new Graph();
 
-        /*
-         * First create all graph nodes
-         * referenced by the extracted roads.
-         */
         createGraphNodes(
                 graph,
                 roads,
                 osmNodes
         );
 
-        /*
-         * Then create the actual road edges.
-         */
         createGraphEdges(
                 graph,
                 roads,
@@ -50,6 +47,10 @@ public class OsmGraphBuilder {
 
         return graph;
     }
+
+    // ---------------------------------------------------------
+    // Create graph nodes
+    // ---------------------------------------------------------
 
     private void createGraphNodes(
             Graph graph,
@@ -69,7 +70,9 @@ public class OsmGraphBuilder {
                 }
 
                 org.openstreetmap.osmosis.core.domain.v0_6.Node osmNode =
-                        osmNodes.get(osmNodeId);
+                        osmNodes.get(
+                                osmNodeId
+                        );
 
                 if (osmNode == null) {
 
@@ -96,10 +99,16 @@ public class OsmGraphBuilder {
                         node
                 );
 
-                graph.addNode(node);
+                graph.addNode(
+                        node
+                );
             }
         }
     }
+
+    // ---------------------------------------------------------
+    // Create graph edges
+    // ---------------------------------------------------------
 
     private void createGraphEdges(
             Graph graph,
@@ -110,6 +119,17 @@ public class OsmGraphBuilder {
 
             List<Long> nodeIds =
                     road.getNodeIds();
+
+            /*
+             * Get speed from OSM maxspeed
+             * when available. Otherwise use
+             * the default speed for the
+             * highway type.
+             */
+            double speedKmh =
+                    getSpeedKmh(
+                            road
+                    );
 
             for (int i = 0;
                  i < nodeIds.size() - 1;
@@ -138,10 +158,14 @@ public class OsmGraphBuilder {
                 }
 
                 org.openstreetmap.osmosis.core.domain.v0_6.Node firstOsmNode =
-                        osmNodes.get(firstOsmId);
+                        osmNodes.get(
+                                firstOsmId
+                        );
 
                 org.openstreetmap.osmosis.core.domain.v0_6.Node secondOsmNode =
-                        osmNodes.get(secondOsmId);
+                        osmNodes.get(
+                                secondOsmId
+                        );
 
                 if (firstOsmNode == null
                         || secondOsmNode == null) {
@@ -156,11 +180,7 @@ public class OsmGraphBuilder {
                                         secondOsmNode
                                 );
 
-                double speedKmh =
-                        getDefaultSpeed(
-                                road.getHighwayType()
-                        );
-
+                // Forward direction
                 Edge forwardEdge =
                         new Edge(
                                 firstNode,
@@ -174,8 +194,8 @@ public class OsmGraphBuilder {
                 );
 
                 /*
-                 * Add the reverse edge only
-                 * when the OSM road is not one-way.
+                 * OSM one-way roads only get
+                 * the forward edge.
                  */
                 if (!road.isOneWay()) {
 
@@ -194,6 +214,37 @@ public class OsmGraphBuilder {
             }
         }
     }
+
+    // ---------------------------------------------------------
+    // Select road speed
+    // ---------------------------------------------------------
+
+    private double getSpeedKmh(
+            OsmRoad road) {
+
+        /*
+         * Prefer the real OSM maxspeed
+         * when it is available and valid.
+         */
+        if (road.hasMaxSpeed()
+                && road.getMaxSpeedKmh() != null
+                && road.getMaxSpeedKmh() > 0) {
+
+            return road.getMaxSpeedKmh();
+        }
+
+        /*
+         * Otherwise fall back to a
+         * highway-type based estimate.
+         */
+        return getDefaultSpeed(
+                road.getHighwayType()
+        );
+    }
+
+    // ---------------------------------------------------------
+    // Default speed by road type
+    // ---------------------------------------------------------
 
     private double getDefaultSpeed(
             String highwayType) {
@@ -236,6 +287,10 @@ public class OsmGraphBuilder {
                 return 30.0;
         }
     }
+
+    // ---------------------------------------------------------
+    // Number of converted graph nodes
+    // ---------------------------------------------------------
 
     public int getConvertedNodeCount() {
 
