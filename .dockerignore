@@ -1,0 +1,9 @@
+.git
+.gitignore
+target/classes
+target/test-classes
+target/generated-sources
+target/generated-test-sources
+*.log
+data/osm/*.osm.pbf
+.env

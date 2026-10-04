@@ -1,0 +1,2625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Intelligent Route Optimization System</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        header {
+            background: #1f2937;
+            color: white;
+            padding: 18px 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #d1d5db;
+            font-size: 14px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            min-height: calc(100vh - 82px);
+        }
+
+        .sidebar {
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #ddd;
+        }
+
+        .map-section {
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100vh - 82px);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 5px 0 15px;
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cfd4da;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #2563eb;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            z-index: 2000;
+            max-height: 220px;
+            overflow-y: auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+        }
+
+        .suggestion {
+            padding: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestion:hover {
+            background: #f0f4ff;
+        }
+
+        .selected-place {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #2563eb;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .route-btn {
+            background: #2563eb;
+            color: white;
+        }
+
+        .route-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .history-btn {
+            background: #111827;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .history-btn:hover {
+            background: #000;
+        }
+
+        .status {
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: 6px;
+            background: #f3f4f6;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .result-card {
+            margin-top: 18px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .result-card h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: bold;
+        }
+
+        .traffic-card {
+            margin-top: 18px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .traffic-card h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+
+        .traffic-road-info {
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .traffic-level {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .traffic-level button {
+            margin-top: 0;
+            padding: 9px;
+            font-size: 12px;
+        }
+
+        .traffic-normal {
+            background: #16a34a;
+        }
+
+        .traffic-light {
+            background: #65a30d;
+        }
+
+        .traffic-moderate {
+            background: #ca8a04;
+        }
+
+        .traffic-heavy {
+            background: #ea580c;
+        }
+
+        .traffic-severe {
+            background: #dc2626;
+        }
+
+        .traffic-normal:hover,
+        .traffic-light:hover,
+        .traffic-moderate:hover,
+        .traffic-heavy:hover,
+        .traffic-severe:hover {
+            opacity: 0.9;
+        }
+
+        .traffic-status {
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .simulation-card {
+            margin-top: 18px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .simulation-card h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+
+        .simulation-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .simulation-controls button {
+            margin-top: 0;
+        }
+
+        .simulation-start {
+            background: #15803d;
+        }
+
+        .simulation-stop {
+            background: #b91c1c;
+        }
+
+        .simulation-start:hover,
+        .simulation-stop:hover {
+            opacity: 0.9;
+        }
+
+        .simulation-status {
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .history-section {
+            margin-top: 22px;
+        }
+
+        .history-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: #2563eb;
+            background: #f8fbff;
+        }
+
+        .history-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 7px;
+        }
+
+        .history-id {
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .algorithm {
+            font-size: 11px;
+            padding: 4px 7px;
+            border-radius: 12px;
+            background: #e5e7eb;
+        }
+
+        .history-route {
+            font-size: 12px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .history-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .history-date {
+            margin-top: 8px;
+            color: #777;
+            font-size: 11px;
+        }
+
+        .empty-history {
+            font-size: 13px;
+            color: #777;
+            padding: 10px 0;
+        }
+
+        .loading {
+            color: #2563eb;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+        .success {
+            color: #15803d;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+
+            #map {
+                height: 550px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Intelligent Route Optimization System</h1>
+    <p>Dijkstra Ã¢â‚¬Â¢ A* Ã¢â‚¬Â¢ OpenStreetMap Ã¢â‚¬Â¢ PostgreSQL Route History</p>
+</header>
+
+<div class="container">
+
+    <!-- ===================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ===================================================== -->
+
+    <div class="sidebar">
+
+        <div class="section-title">Find Route</div>
+
+        <!-- START LOCATION -->
+        <div class="field-group">
+
+            <label for="startPlace">Start Location</label>
+
+            <input
+                type="text"
+                id="startPlace"
+                placeholder="Enter start place"
+                autocomplete="off"
+            />
+
+            <div
+                id="startSuggestions"
+                class="suggestions"
+                style="display: none;"
+            ></div>
+
+            <div
+                id="startSelected"
+                class="selected-place"
+            ></div>
+
+            <input
+                type="hidden"
+                id="startLatitude"
+            />
+
+            <input
+                type="hidden"
+                id="startLongitude"
+            />
+        </div>
+
+        <!-- DESTINATION -->
+        <div class="field-group">
+
+            <label for="endPlace">Destination</label>
+
+            <input
+                type="text"
+                id="endPlace"
+                placeholder="Enter destination"
+                autocomplete="off"
+            />
+
+            <div
+                id="endSuggestions"
+                class="suggestions"
+                style="display: none;"
+            ></div>
+
+            <div
+                id="endSelected"
+                class="selected-place"
+            ></div>
+
+            <input
+                type="hidden"
+                id="endLatitude"
+            />
+
+            <input
+                type="hidden"
+                id="endLongitude"
+            />
+        </div>
+
+        <!-- ALGORITHM -->
+        <div class="field-group">
+
+            <label for="algorithm">Routing Algorithm</label>
+
+            <select id="algorithm">
+
+                <option value="dijkstra">
+                    Dijkstra
+                </option>
+
+                <option value="astar">
+                    A*
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- ROUTE BUTTON -->
+        <button
+            class="route-btn"
+            onclick="findRoute()"
+        >
+            Find Route
+        </button>
+
+        <button
+            class="history-btn"
+            onclick="compareRoutes()"
+        >
+            Compare Dijkstra vs A*
+        </button>
+
+        <!-- STATUS -->
+        <div
+            id="status"
+            class="status"
+        >
+            Enter two locations and select suggestions.
+        </div>
+
+        <!-- ROUTE RESULT -->
+        <div
+            id="resultCard"
+            class="result-card"
+            style="display: none;"
+        >
+
+            <h3>Route Result</h3>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Algorithm
+                </span>
+
+                <span id="resultAlgorithm">
+                    -
+                </span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Distance
+                </span>
+
+                <span id="resultDistance">
+                    -
+                </span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Travel Time
+                </span>
+
+                <span id="resultTime">
+                    -
+                </span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Path Nodes
+                </span>
+
+                <span id="resultNodes">
+                    -
+                </span>
+            </div>
+
+        </div>
+
+        <!-- ================================================= -->
+        <!-- HISTORY -->
+        <!-- ================================================= -->
+
+        <div
+            id="comparisonCard"
+            class="result-card"
+            style="display: none;"
+        >
+
+            <h3>Algorithm Comparison</h3>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Dijkstra Distance
+                </span>
+                <span id="compareDijkstraDistance">-</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Dijkstra Travel Time
+                </span>
+                <span id="compareDijkstraTime">-</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Dijkstra Path Nodes
+                </span>
+                <span id="compareDijkstraNodes">-</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    A* Distance
+                </span>
+                <span id="compareAStarDistance">-</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    A* Travel Time
+                </span>
+                <span id="compareAStarTime">-</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    A* Path Nodes
+                </span>
+                <span id="compareAStarNodes">-</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">
+                    Time Difference
+                </span>
+                <span id="compareTimeDifference">-</span>
+            </div>
+
+        </div>
+        <!-- ================================================= -->
+        <!-- TRAFFIC CONTROL -->
+        <!-- ================================================= -->
+
+        <div
+            id="trafficCard"
+            class="traffic-card"
+        >
+
+            <h3>Traffic Control</h3>
+
+            <div
+                id="trafficRoadInfo"
+                class="traffic-road-info"
+            >
+                Click a road segment on the calculated route
+                to select it.
+            </div>
+
+            <div
+                id="trafficCurrent"
+                class="traffic-status"
+            >
+                Current traffic: -
+            </div>
+
+            <div
+                class="traffic-level"
+                style="margin-top: 10px;"
+            >
+
+                <button
+                    class="traffic-normal"
+                    onclick="updateSelectedTraffic('NORMAL')"
+                >
+                    NORMAL
+                </button>
+
+                <button
+                    class="traffic-light"
+                    onclick="updateSelectedTraffic('LIGHT')"
+                >
+                    LIGHT
+                </button>
+
+                <button
+                    class="traffic-moderate"
+                    onclick="updateSelectedTraffic('MODERATE')"
+                >
+                    MODERATE
+                </button>
+
+                <button
+                    class="traffic-heavy"
+                    onclick="updateSelectedTraffic('HEAVY')"
+                >
+                    HEAVY
+                </button>
+
+                <button
+                    class="traffic-severe"
+                    onclick="updateSelectedTraffic('SEVERE')"
+                >
+                    SEVERE
+                </button>
+
+            </div>
+
+            <div
+                id="trafficStatus"
+                class="traffic-status"
+            ></div>
+
+        </div>
+        <!-- ================================================= -->
+        <!-- AUTOMATIC TRAFFIC SIMULATION -->
+        <!-- ================================================= -->
+
+        <div
+            id="simulationCard"
+            class="simulation-card"
+        >
+
+            <h3>Automatic Traffic Simulation</h3>
+
+            <div class="simulation-status">
+                Automatically changes the selected road traffic
+                every 5 seconds and recalculates the route.
+            </div>
+
+            <div class="simulation-controls">
+
+                <button
+                    class="simulation-start"
+                    onclick="startTrafficSimulation()"
+                >
+                    Start Simulation
+                </button>
+
+                <button
+                    class="simulation-stop"
+                    onclick="stopTrafficSimulation()"
+                >
+                    Stop Simulation
+                </button>
+
+            </div>
+
+            <div
+                id="simulationStatus"
+                class="simulation-status"
+            >
+                Simulation stopped.
+            </div>
+
+        </div>
+        <div class="history-section">
+
+            <div class="section-title">
+                Recent Route History
+            </div>
+
+            <button
+                class="history-btn"
+                onclick="loadHistory()"
+            >
+                Refresh History
+            </button>
+
+            <div
+                id="historyList"
+                style="margin-top: 12px;"
+            >
+                <div class="loading">
+                    Loading route history...
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- MAP -->
+    <!-- ===================================================== -->
+
+    <div class="map-section">
+
+        <div id="map"></div>
+
+    </div>
+
+</div>
+
+<!-- Leaflet JS -->
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script>
+
+    // =========================================================
+    // MAP INITIALIZATION
+    // =========================================================
+
+    const map = L.map("map").setView(
+        [22.5726, 88.3639],
+        11
+    );
+
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
+            attribution:
+                '&copy; OpenStreetMap contributors'
+        }
+    ).addTo(map);
+
+
+    // =========================================================
+    // MAP VARIABLES
+    // =========================================================
+
+    let routeLayer = null;
+    let startMarker = null;
+    let endMarker = null;
+
+    let startSearchTimer = null;
+    let selectedRoadSourceId = null;
+    let selectedRoadDestinationId = null;
+
+    let lastRoutePoints = [];
+    let trafficSimulationTimer = null;
+
+    let trafficSimulationIndex = 0;
+
+    const trafficSimulationLevels = [
+        "NORMAL",
+        "LIGHT",
+        "MODERATE",
+        "HEAVY",
+        "SEVERE"
+    ];
+
+
+    let endSearchTimer = null;
+
+
+    // =========================================================
+    // KOLKATA AREA
+    // =========================================================
+
+    const VIEWBOX =
+        "88.20,22.75,88.55,22.45";
+
+
+    // =========================================================
+    // START PLACE SEARCH
+    // =========================================================
+
+    document
+        .getElementById("startPlace")
+        .addEventListener("input", function () {
+
+            clearTimeout(startSearchTimer);
+
+            const query =
+                this.value.trim();
+
+            clearSelectedLocation("start");
+
+            if (query.length < 3) {
+
+                hideSuggestions(
+                    "startSuggestions"
+                );
+
+                return;
+            }
+
+            startSearchTimer =
+                setTimeout(() => {
+
+                    searchPlaces(
+                        query,
+                        "start"
+                    );
+
+                }, 500);
+
+        });
+
+
+    // =========================================================
+    // DESTINATION SEARCH
+    // =========================================================
+
+    document
+        .getElementById("endPlace")
+        .addEventListener("input", function () {
+
+            clearTimeout(endSearchTimer);
+
+            const query =
+                this.value.trim();
+
+            clearSelectedLocation("end");
+
+            if (query.length < 3) {
+
+                hideSuggestions(
+                    "endSuggestions"
+                );
+
+                return;
+            }
+
+            endSearchTimer =
+                setTimeout(() => {
+
+                    searchPlaces(
+                        query,
+                        "end"
+                    );
+
+                }, 500);
+
+        });
+
+
+    // =========================================================
+    // SEARCH PLACES USING NOMINATIM
+    // =========================================================
+
+    async function searchPlaces(
+        query,
+        type
+    ) {
+
+        const suggestionsId =
+            type === "start"
+                ? "startSuggestions"
+                : "endSuggestions";
+
+        const container =
+            document.getElementById(
+                suggestionsId
+            );
+
+        container.style.display = "block";
+
+        container.innerHTML =
+            '<div class="suggestion">Searching...</div>';
+
+        try {
+
+            const url =
+                "https://nominatim.openstreetmap.org/search"
+                + "?format=json"
+                + "&q="
+                + encodeURIComponent(query)
+                + "&limit=5"
+                + "&countrycodes=in"
+                + "&viewbox="
+                + VIEWBOX
+                + "&bounded=1";
+
+            const response =
+                await fetch(url, {
+                    headers: {
+                        "Accept-Language": "en"
+                    }
+                });
+
+            if (!response.ok) {
+                throw new Error(
+                    "Location search failed."
+                );
+            }
+
+            const results =
+                await response.json();
+
+            container.innerHTML = "";
+
+            if (results.length === 0) {
+
+                container.innerHTML =
+                    '<div class="suggestion">No places found.</div>';
+
+                return;
+            }
+
+            results.forEach(place => {
+
+                const item =
+                    document.createElement("div");
+
+                item.className =
+                    "suggestion";
+
+                item.textContent =
+                    place.display_name;
+
+                item.addEventListener(
+                    "click",
+                    function () {
+
+                        selectPlace(
+                            place,
+                            type
+                        );
+
+                    }
+                );
+
+                container.appendChild(item);
+
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            container.innerHTML =
+                '<div class="suggestion error">'
+                + "Unable to search location."
+                + "</div>";
+        }
+    }
+
+
+    // =========================================================
+    // SELECT PLACE
+    // =========================================================
+
+    function selectPlace(
+        place,
+        type
+    ) {
+
+        const latitude =
+            parseFloat(place.lat);
+
+        const longitude =
+            parseFloat(place.lon);
+
+        const input =
+            document.getElementById(
+                type === "start"
+                    ? "startPlace"
+                    : "endPlace"
+            );
+
+        const selected =
+            document.getElementById(
+                type === "start"
+                    ? "startSelected"
+                    : "endSelected"
+            );
+
+        const latitudeInput =
+            document.getElementById(
+                type === "start"
+                    ? "startLatitude"
+                    : "endLatitude"
+            );
+
+        const longitudeInput =
+            document.getElementById(
+                type === "start"
+                    ? "startLongitude"
+                    : "endLongitude"
+            );
+
+        input.value =
+            place.display_name;
+
+        latitudeInput.value =
+            latitude;
+
+        longitudeInput.value =
+            longitude;
+
+        selected.textContent =
+            "Selected: "
+            + latitude.toFixed(6)
+            + ", "
+            + longitude.toFixed(6);
+
+        hideSuggestions(
+            type === "start"
+                ? "startSuggestions"
+                : "endSuggestions"
+        );
+
+        // Move map to selected location
+        map.setView(
+            [latitude, longitude],
+            14
+        );
+    }
+
+
+    // =========================================================
+    // CLEAR SELECTED LOCATION
+    // =========================================================
+
+    function clearSelectedLocation(type) {
+
+        document.getElementById(
+            type === "start"
+                ? "startLatitude"
+                : "endLatitude"
+        ).value = "";
+
+        document.getElementById(
+            type === "start"
+                ? "startLongitude"
+                : "endLongitude"
+        ).value = "";
+
+        document.getElementById(
+            type === "start"
+                ? "startSelected"
+                : "endSelected"
+        ).textContent = "";
+    }
+
+
+    // =========================================================
+    // HIDE SUGGESTIONS
+    // =========================================================
+
+    function hideSuggestions(id) {
+
+        document.getElementById(
+            id
+        ).style.display = "none";
+    }
+
+
+    // =========================================================
+    // FIND ROUTE
+    // =========================================================
+
+    async function findRoute(useSimulationEndpoint = false) {
+
+        const startLatitude =
+            document.getElementById(
+                "startLatitude"
+            ).value;
+
+        const startLongitude =
+            document.getElementById(
+                "startLongitude"
+            ).value;
+
+        const endLatitude =
+            document.getElementById(
+                "endLatitude"
+            ).value;
+
+        const endLongitude =
+            document.getElementById(
+                "endLongitude"
+            ).value;
+
+        const algorithm =
+            document.getElementById(
+                "algorithm"
+            ).value;
+
+        const status =
+            document.getElementById(
+                "status"
+            );
+
+        // =====================================================
+        // VALIDATION
+        // =====================================================
+
+        if (!startLatitude || !startLongitude) {
+
+            status.className =
+                "status error";
+
+            status.textContent =
+                "Please select the start location from suggestions.";
+
+            return;
+        }
+
+        if (!endLatitude || !endLongitude) {
+
+            status.className =
+                "status error";
+
+            status.textContent =
+                "Please select the destination from suggestions.";
+
+            return;
+        }
+
+        status.className =
+            "status loading";
+
+        status.textContent =
+            "Calculating route using "
+            + (algorithm === "astar"
+                ? "A*"
+                : "Dijkstra")
+            + "...";
+
+        try {
+
+            const url =
+                "/api/route"
+                + "?startLatitude="
+                + encodeURIComponent(startLatitude)
+                + "&startLongitude="
+                + encodeURIComponent(startLongitude)
+                + "&endLatitude="
+                + encodeURIComponent(endLatitude)
+                + "&endLongitude="
+                + encodeURIComponent(endLongitude)
+                + "&algorithm="
+                + encodeURIComponent(algorithm);
+
+            const routeRequestUrl =
+                useSimulationEndpoint
+                    ? url.replace(
+                        "/api/route",
+                        "/api/route/simulation"
+                    )
+                    : url;
+
+            const response =
+                await fetch(routeRequestUrl);
+
+            if (!response.ok) {
+
+                let message =
+                    "Unable to calculate route.";
+
+                try {
+
+                    const errorData =
+                        await response.json();
+
+                    if (errorData.message) {
+                        message =
+                            errorData.message;
+                    }
+
+                } catch (e) {
+                    // Ignore JSON parsing errors
+                }
+
+                throw new Error(message);
+            }
+
+            const data =
+                await response.json();
+
+            displayRoute(data);
+
+            status.className =
+                "status success";
+
+            status.textContent =
+                "Route calculated successfully.";
+
+            // Refresh history because this route
+            // has just been saved to PostgreSQL.
+            loadHistory();
+
+        } catch (error) {
+
+            console.error(error);
+
+            status.className =
+                "status error";
+
+            status.textContent =
+                error.message;
+        }
+    }
+
+
+    // =========================================================
+    // DISPLAY ROUTE
+    // =========================================================
+
+    function displayRoute(data) {
+
+        // Remove old route
+        if (routeLayer) {
+
+            map.removeLayer(
+                routeLayer
+            );
+
+            routeLayer = null;
+        }
+
+        // Remove old markers
+        if (startMarker) {
+
+            map.removeLayer(
+                startMarker
+            );
+
+            startMarker = null;
+        }
+
+        if (endMarker) {
+
+            map.removeLayer(
+                endMarker
+            );
+
+            endMarker = null;
+        }
+
+        const routePoints =
+            data.routePoints || [];
+
+        lastRoutePoints = routePoints;
+
+        if (routePoints.length === 0) {
+
+            return;
+        }
+
+        // =====================================================
+        // CONVERT ROUTE POINTS
+        // =====================================================
+
+        const latLngs =
+            routePoints.map(point => [
+                point.latitude,
+                point.longitude
+            ]);
+
+        // =====================================================
+        // DRAW POLYLINE
+        // =====================================================
+
+        routeLayer =
+            L.polyline(
+                latLngs,
+                {
+                    weight: 5
+                }
+            ).addTo(map);
+
+        routeLayer.on(
+            "click",
+            function(event) {
+                selectNearestRoadSegment(
+                    event.latlng
+                );
+            }
+        );
+
+        // =====================================================
+        // START MARKER
+        // =====================================================
+
+        const firstPoint =
+            latLngs[0];
+
+        startMarker =
+            L.marker(firstPoint)
+                .addTo(map)
+                .bindPopup(
+                    "<b>Start</b>"
+                );
+
+        // =====================================================
+        // END MARKER
+        // =====================================================
+
+        const lastPoint =
+            latLngs[
+                latLngs.length - 1
+            ];
+
+        endMarker =
+            L.marker(lastPoint)
+                .addTo(map)
+                .bindPopup(
+                    "<b>Destination</b>"
+                );
+
+        // =====================================================
+        // FIT MAP TO ROUTE
+        // =====================================================
+
+        map.fitBounds(
+            routeLayer.getBounds(),
+            {
+                padding: [30, 30]
+            }
+        );
+
+        // =====================================================
+        // DISPLAY RESULT
+        // =====================================================
+
+        document.getElementById(
+            "resultCard"
+        ).style.display = "block";
+
+        document.getElementById(
+            "resultAlgorithm"
+        ).textContent =
+            data.algorithm;
+
+        document.getElementById(
+            "resultDistance"
+        ).textContent =
+            Number(
+                data.totalDistanceKm
+            ).toFixed(2)
+            + " km";
+
+        document.getElementById(
+            "resultTime"
+        ).textContent =
+            Number(
+                data.totalTravelTimeMinutes
+            ).toFixed(2)
+            + " minutes";
+
+        document.getElementById(
+            "resultNodes"
+        ).textContent =
+            data.pathNodes;
+    }
+
+
+    // =========================================================
+    // COMPARE DIJKSTRA AND A*
+    // =========================================================
+
+    async function compareRoutes() {
+
+        const startLatitude =
+            document.getElementById(
+                "startLatitude"
+            ).value;
+
+        const startLongitude =
+            document.getElementById(
+                "startLongitude"
+            ).value;
+
+        const endLatitude =
+            document.getElementById(
+                "endLatitude"
+            ).value;
+
+        const endLongitude =
+            document.getElementById(
+                "endLongitude"
+            ).value;
+
+        const status =
+            document.getElementById(
+                "status"
+            );
+
+        if (!startLatitude || !startLongitude) {
+
+            status.className = "status error";
+
+            status.textContent =
+                "Please select the start location.";
+
+            return;
+        }
+
+        if (!endLatitude || !endLongitude) {
+
+            status.className = "status error";
+
+            status.textContent =
+                "Please select the destination.";
+
+            return;
+        }
+
+        status.className = "status loading";
+
+        status.textContent =
+            "Comparing Dijkstra and A*...";
+
+        try {
+
+            const url =
+                "/api/route/compare"
+                + "?startLatitude="
+                + encodeURIComponent(startLatitude)
+                + "&startLongitude="
+                + encodeURIComponent(startLongitude)
+                + "&endLatitude="
+                + encodeURIComponent(endLatitude)
+                + "&endLongitude="
+                + encodeURIComponent(endLongitude);
+
+            const routeRequestUrl =
+                useSimulationEndpoint
+                    ? url.replace(
+                        "/api/route",
+                        "/api/route/simulation"
+                    )
+                    : url;
+
+            const response =
+                await fetch(routeRequestUrl);
+
+            if (!response.ok) {
+
+                let message =
+                    "Unable to compare routes.";
+
+                try {
+
+                    const errorData =
+                        await response.json();
+
+                    if (errorData.message) {
+                        message = errorData.message;
+                    }
+
+                } catch (e) {
+                    // Ignore JSON parsing error
+                }
+
+                throw new Error(message);
+            }
+
+            const data =
+                await response.json();
+
+            document.getElementById(
+                "comparisonCard"
+            ).style.display = "block";
+
+            document.getElementById(
+                "compareDijkstraDistance"
+            ).textContent =
+                Number(
+                    data.dijkstraDistanceKm
+                ).toFixed(2) + " km";
+
+            document.getElementById(
+                "compareDijkstraTime"
+            ).textContent =
+                Number(
+                    data.dijkstraTravelTimeMinutes
+                ).toFixed(2) + " minutes";
+
+            document.getElementById(
+                "compareDijkstraNodes"
+            ).textContent =
+                data.dijkstraPathNodes;
+
+            document.getElementById(
+                "compareAStarDistance"
+            ).textContent =
+                Number(
+                    data.aStarDistanceKm
+                ).toFixed(2) + " km";
+
+            document.getElementById(
+                "compareAStarTime"
+            ).textContent =
+                Number(
+                    data.aStarTravelTimeMinutes
+                ).toFixed(2) + " minutes";
+
+            document.getElementById(
+                "compareAStarNodes"
+            ).textContent =
+                data.aStarPathNodes;
+
+            document.getElementById(
+                "compareTimeDifference"
+            ).textContent =
+                Number(
+                    data.timeDifferenceMinutes
+                ).toFixed(2) + " minutes";
+
+            status.className =
+                "status success";
+
+            status.textContent =
+                "Route comparison completed.";
+
+        } catch (error) {
+
+            console.error(error);
+
+            status.className =
+                "status error";
+
+            status.textContent =
+                error.message;
+        }
+    }
+
+    // =========================================================
+    // SELECT NEAREST ROAD SEGMENT
+    // =========================================================
+
+    function selectNearestRoadSegment(latlng) {
+
+        if (
+            !lastRoutePoints ||
+            lastRoutePoints.length < 2
+        ) {
+            return;
+        }
+
+        let closestIndex = 0;
+        let minimumDistance = Infinity;
+
+        for (
+            let i = 0;
+            i < lastRoutePoints.length - 1;
+            i++
+        ) {
+
+            const p1 = L.latLng(
+                lastRoutePoints[i].latitude,
+                lastRoutePoints[i].longitude
+            );
+
+            const p2 = L.latLng(
+                lastRoutePoints[i + 1].latitude,
+                lastRoutePoints[i + 1].longitude
+            );
+
+            const distance =
+                distanceToSegment(
+                    latlng,
+                    p1,
+                    p2
+                );
+
+            if (
+                distance < minimumDistance
+            ) {
+                minimumDistance = distance;
+                closestIndex = i;
+            }
+        }
+
+        const sourceNode =
+            lastRoutePoints[
+                closestIndex
+            ];
+
+        const destinationNode =
+            lastRoutePoints[
+                closestIndex + 1
+            ];
+
+        selectedRoadSourceId =
+            sourceNode.nodeId;
+
+        selectedRoadDestinationId =
+            destinationNode.nodeId;
+
+        loadSelectedRoadTraffic();
+    }
+
+
+    // =========================================================
+    // APPROXIMATE DISTANCE TO LINE SEGMENT
+    // =========================================================
+
+    function distanceToSegment(
+        point,
+        segmentStart,
+        segmentEnd
+    ) {
+
+        const x = point.lng;
+        const y = point.lat;
+
+        const x1 = segmentStart.lng;
+        const y1 = segmentStart.lat;
+
+        const x2 = segmentEnd.lng;
+        const y2 = segmentEnd.lat;
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+
+        if (dx === 0 && dy === 0) {
+
+            return Math.sqrt(
+                Math.pow(x - x1, 2)
+                +
+                Math.pow(y - y1, 2)
+            );
+        }
+
+        const t =
+            Math.max(
+                0,
+                Math.min(
+                    1,
+                    (
+                        (x - x1) * dx
+                        +
+                        (y - y1) * dy
+                    )
+                    /
+                    (dx * dx + dy * dy)
+                )
+            );
+
+        const nearestX =
+            x1 + t * dx;
+
+        const nearestY =
+            y1 + t * dy;
+
+        return Math.sqrt(
+            Math.pow(x - nearestX, 2)
+            +
+            Math.pow(y - nearestY, 2)
+        );
+    }
+
+
+    // =========================================================
+    // LOAD SELECTED ROAD TRAFFIC
+    // =========================================================
+
+    async function loadSelectedRoadTraffic() {
+
+        if (
+            selectedRoadSourceId === null
+            ||
+            selectedRoadDestinationId === null
+        ) {
+            return;
+        }
+
+        const roadInfo =
+            document.getElementById(
+                "trafficRoadInfo"
+            );
+
+        const currentTraffic =
+            document.getElementById(
+                "trafficCurrent"
+            );
+
+        const status =
+            document.getElementById(
+                "trafficStatus"
+            );
+
+        roadInfo.textContent =
+            "Road: "
+            + selectedRoadSourceId
+            + " â†’ "
+            + selectedRoadDestinationId;
+
+        status.textContent =
+            "Loading road traffic...";
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/traffic/road"
+                    + "?sourceId="
+                    + encodeURIComponent(
+                        selectedRoadSourceId
+                    )
+                    + "&destinationId="
+                    + encodeURIComponent(
+                        selectedRoadDestinationId
+                    )
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load road traffic."
+                );
+            }
+
+            const data =
+                await response.json();
+
+            currentTraffic.innerHTML =
+                "<b>Current traffic:</b> "
+                + data.trafficLevel
+                + "<br>"
+                + "<b>Speed:</b> "
+                + Number(
+                    data.speedKmh
+                ).toFixed(1)
+                + " km/h"
+                + "<br>"
+                + "<b>Effective speed:</b> "
+                + Number(
+                    data.effectiveSpeedKmh
+                ).toFixed(1)
+                + " km/h"
+                + "<br>"
+                + "<b>Travel time:</b> "
+                + Number(
+                    data.travelTimeMinutes
+                ).toFixed(2)
+                + " min";
+
+            status.textContent =
+                "Road selected successfully.";
+
+        } catch (error) {
+
+            console.error(error);
+
+            status.textContent =
+                error.message;
+        }
+    }
+
+
+    // =========================================================
+    // UPDATE SELECTED TRAFFIC
+    // =========================================================
+
+    async function updateSelectedTraffic(
+        trafficLevel
+    ) {
+
+        const status =
+            document.getElementById(
+                "trafficStatus"
+            );
+
+        if (
+            selectedRoadSourceId === null
+            ||
+            selectedRoadDestinationId === null
+        ) {
+
+            status.textContent =
+                "Click a route road segment first.";
+
+            return;
+        }
+
+        status.textContent =
+            "Updating traffic to "
+            + trafficLevel
+            + "...";
+
+        try {
+
+            const url =
+                "/api/traffic/road"
+                + "?sourceId="
+                + encodeURIComponent(
+                    selectedRoadSourceId
+                )
+                + "&destinationId="
+                + encodeURIComponent(
+                    selectedRoadDestinationId
+                )
+                + "&trafficLevel="
+                + encodeURIComponent(
+                    trafficLevel
+                );
+
+            const response =
+                await fetch(
+                    url,
+                    {
+                        method: "PUT"
+                    }
+                );
+
+            if (!response.ok) {
+
+                let message =
+                    "Traffic update failed.";
+
+                try {
+
+                    const errorData =
+                        await response.json();
+
+                    if (errorData.message) {
+                        message =
+                            errorData.message;
+                    }
+
+                } catch (e) {
+                    // Ignore JSON parsing error
+                }
+
+                throw new Error(message);
+            }
+
+            const data =
+                await response.json();
+
+            status.textContent =
+                "Traffic changed from "
+                + data.oldTraffic
+                + " to "
+                + data.newTraffic
+                + ". Recalculating route...";
+
+            await loadSelectedRoadTraffic();
+
+            // Recalculate current route
+            await findRoute();
+
+            status.textContent =
+                "Traffic updated and route recalculated.";
+
+        } catch (error) {
+
+            console.error(error);
+
+            status.textContent =
+                error.message;
+        }
+    }
+
+    // =========================================================
+    // START AUTOMATIC TRAFFIC SIMULATION
+    // =========================================================
+
+    function startTrafficSimulation() {
+
+        if (
+            selectedRoadSourceId === null
+            ||
+            selectedRoadDestinationId === null
+        ) {
+
+            const simulationStatus =
+                document.getElementById(
+                    "simulationStatus"
+                );
+
+            simulationStatus.textContent =
+                "Select a road segment on the route first.";
+
+            return;
+        }
+
+        // Prevent duplicate timers
+        if (trafficSimulationTimer !== null) {
+
+            return;
+        }
+
+        trafficSimulationIndex = 0;
+
+        const simulationStatus =
+            document.getElementById(
+                "simulationStatus"
+            );
+
+        simulationStatus.textContent =
+            "Simulation started. Traffic will change every 5 seconds.";
+
+        // Perform first update immediately
+        runNextTrafficSimulationStep();
+
+        // Continue every 5 seconds
+        trafficSimulationTimer =
+            setInterval(
+                runNextTrafficSimulationStep,
+                5000
+            );
+    }
+
+
+    // =========================================================
+    // STOP AUTOMATIC TRAFFIC SIMULATION
+    // =========================================================
+
+    function stopTrafficSimulation() {
+
+        if (
+            trafficSimulationTimer !== null
+        ) {
+
+            clearInterval(
+                trafficSimulationTimer
+            );
+
+            trafficSimulationTimer = null;
+        }
+
+        const simulationStatus =
+            document.getElementById(
+                "simulationStatus"
+            );
+
+        simulationStatus.textContent =
+            "Simulation stopped.";
+    }
+
+
+    // =========================================================
+    // RUN NEXT SIMULATION STEP
+    // =========================================================
+
+    async function runNextTrafficSimulationStep() {
+
+        if (
+            selectedRoadSourceId === null
+            ||
+            selectedRoadDestinationId === null
+        ) {
+
+            stopTrafficSimulation();
+
+            return;
+        }
+
+        const trafficLevel =
+            trafficSimulationLevels[
+                trafficSimulationIndex
+            ];
+
+        trafficSimulationIndex =
+            (
+                trafficSimulationIndex + 1
+            )
+            %
+            trafficSimulationLevels.length;
+
+        const simulationStatus =
+            document.getElementById(
+                "simulationStatus"
+            );
+
+        simulationStatus.textContent =
+            "Changing selected road to "
+            + trafficLevel
+            + "...";
+
+        try {
+
+            // =================================================
+            // UPDATE TRAFFIC
+            // =================================================
+
+            const trafficUrl =
+                "/api/traffic/road"
+                + "?sourceId="
+                + encodeURIComponent(
+                    selectedRoadSourceId
+                )
+                + "&destinationId="
+                + encodeURIComponent(
+                    selectedRoadDestinationId
+                )
+                + "&trafficLevel="
+                + encodeURIComponent(
+                    trafficLevel
+                );
+
+            const trafficResponse =
+                await fetch(
+                    trafficUrl,
+                    {
+                        method: "PUT"
+                    }
+                );
+
+            if (!trafficResponse.ok) {
+
+                let message =
+                    "Traffic simulation update failed.";
+
+                try {
+
+                    const errorData =
+                        await trafficResponse.json();
+
+                    if (errorData.message) {
+                        message =
+                            errorData.message;
+                    }
+
+                } catch (e) {
+                    // Ignore parsing errors
+                }
+
+                throw new Error(message);
+            }
+
+            const trafficData =
+                await trafficResponse.json();
+
+            // =================================================
+            // UPDATE TRAFFIC INFORMATION
+            // =================================================
+
+            const currentTraffic =
+                document.getElementById(
+                    "trafficCurrent"
+                );
+
+            currentTraffic.innerHTML =
+                "<b>Current traffic:</b> "
+                + trafficData.newTraffic
+                + "<br>"
+                + "<b>Effective speed:</b> "
+                + Number(
+                    trafficData.effectiveSpeedKmh
+                ).toFixed(1)
+                + " km/h"
+                + "<br>"
+                + "<b>Travel time:</b> "
+                + Number(
+                    trafficData.travelTimeMinutes
+                ).toFixed(2)
+                + " min";
+
+            // =================================================
+            // RECALCULATE WITHOUT SAVING HISTORY
+            // =================================================
+
+            await recalculateSimulationRoute();
+
+            simulationStatus.textContent =
+                "Traffic: "
+                + trafficData.newTraffic
+                + " | Route recalculated.";
+
+        } catch (error) {
+
+            console.error(error);
+
+            simulationStatus.textContent =
+                "Simulation error: "
+                + error.message;
+        }
+    }
+
+
+    // =========================================================
+    // RECALCULATE CURRENT ROUTE WITHOUT HISTORY
+    // =========================================================
+
+    async function recalculateSimulationRoute() {
+
+        const startLatitude =
+            document.getElementById(
+                "startLatitude"
+            ).value;
+
+        const startLongitude =
+            document.getElementById(
+                "startLongitude"
+            ).value;
+
+        const endLatitude =
+            document.getElementById(
+                "endLatitude"
+            ).value;
+
+        const endLongitude =
+            document.getElementById(
+                "endLongitude"
+            ).value;
+
+        const algorithm =
+            document.getElementById(
+                "algorithm"
+            ).value;
+
+        if (
+            !startLatitude
+            ||
+            !startLongitude
+            ||
+            !endLatitude
+            ||
+            !endLongitude
+        ) {
+
+            return;
+        }
+
+        const url =
+            "/api/route/simulation"
+            + "?startLatitude="
+            + encodeURIComponent(
+                startLatitude
+            )
+            + "&startLongitude="
+            + encodeURIComponent(
+                startLongitude
+            )
+            + "&endLatitude="
+            + encodeURIComponent(
+                endLatitude
+            )
+            + "&endLongitude="
+            + encodeURIComponent(
+                endLongitude
+            )
+            + "&algorithm="
+            + encodeURIComponent(
+                algorithm
+            );
+
+        const response =
+            await fetch(url);
+
+        if (!response.ok) {
+
+            let message =
+                "Unable to recalculate route.";
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+                if (errorData.message) {
+                    message =
+                        errorData.message;
+                }
+
+            } catch (e) {
+                // Ignore parsing errors
+            }
+
+            throw new Error(message);
+        }
+
+        const data =
+            await response.json();
+
+        displayRoute(data);
+    }
+
+    // =========================================================
+    // LOAD ROUTE HISTORY
+    // =========================================================
+
+    async function loadHistory() {
+
+        const historyList =
+            document.getElementById(
+                "historyList"
+            );
+
+        historyList.innerHTML =
+            '<div class="loading">'
+            + "Loading route history..."
+            + "</div>";
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/history"
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Failed to load route history."
+                );
+            }
+
+            const history =
+                await response.json();
+
+            displayHistory(
+                history
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            historyList.innerHTML =
+                '<div class="error">'
+                + error.message
+                + "</div>";
+        }
+    }
+
+
+    // =========================================================
+    // DISPLAY HISTORY
+    // =========================================================
+
+    function displayHistory(
+        history
+    ) {
+
+        const historyList =
+            document.getElementById(
+                "historyList"
+            );
+
+        historyList.innerHTML = "";
+
+        if (!history || history.length === 0) {
+
+            historyList.innerHTML =
+                '<div class="empty-history">'
+                + "No route history available."
+                + "</div>";
+
+            return;
+        }
+
+        history.forEach(route => {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "history-item";
+
+            // =================================================
+            // TOP
+            // =================================================
+
+            const top =
+                document.createElement("div");
+
+            top.className =
+                "history-top";
+
+            const id =
+                document.createElement("span");
+
+            id.className =
+                "history-id";
+
+            id.textContent =
+                "#" + route.id;
+
+            const algorithm =
+                document.createElement("span");
+
+            algorithm.className =
+                "algorithm";
+
+            algorithm.textContent =
+                route.algorithm;
+
+            top.appendChild(id);
+            top.appendChild(algorithm);
+
+            // =================================================
+            // ROUTE COORDINATES
+            // =================================================
+
+            const routeText =
+                document.createElement("div");
+
+            routeText.className =
+                "history-route";
+
+            routeText.innerHTML =
+                "<b>Start:</b> "
+                + Number(
+                    route.startLatitude
+                ).toFixed(5)
+                + ", "
+                + Number(
+                    route.startLongitude
+                ).toFixed(5)
+                + "<br>"
+                + "<b>End:</b> "
+                + Number(
+                    route.endLatitude
+                ).toFixed(5)
+                + ", "
+                + Number(
+                    route.endLongitude
+                ).toFixed(5);
+
+            // =================================================
+            // DETAILS
+            // =================================================
+
+            const details =
+                document.createElement("div");
+
+            details.className =
+                "history-details";
+
+            details.innerHTML =
+                "<div><b>Distance:</b> "
+                + Number(
+                    route.totalDistanceKm
+                ).toFixed(2)
+                + " km</div>"
+
+                + "<div><b>Time:</b> "
+                + Number(
+                    route.totalTravelTimeMinutes
+                ).toFixed(2)
+                + " min</div>"
+
+                + "<div><b>Nodes:</b> "
+                + route.pathNodes
+                + "</div>";
+
+            // =================================================
+            // DATE
+            // =================================================
+
+            const date =
+                document.createElement("div");
+
+            date.className =
+                "history-date";
+
+            date.textContent =
+                formatDate(
+                    route.createdAt
+                );
+
+            // =================================================
+            // BUILD CARD
+            // =================================================
+
+            item.appendChild(top);
+            item.appendChild(routeText);
+            item.appendChild(details);
+            item.appendChild(date);
+
+            // =================================================
+            // CLICK HISTORY ITEM
+            // =================================================
+
+            item.addEventListener(
+                "click",
+                function () {
+
+                    loadHistoryRoute(
+                        route
+                    );
+
+                }
+            );
+
+            historyList.appendChild(
+                item
+            );
+
+        });
+    }
+
+
+    // =========================================================
+    // LOAD SELECTED HISTORY ROUTE
+    // =========================================================
+
+    async function loadHistoryRoute(
+        historyRoute
+    ) {
+
+        // Put coordinates into the fields
+        document.getElementById(
+            "startLatitude"
+        ).value =
+            historyRoute.startLatitude;
+
+        document.getElementById(
+            "startLongitude"
+        ).value =
+            historyRoute.startLongitude;
+
+        document.getElementById(
+            "endLatitude"
+        ).value =
+            historyRoute.endLatitude;
+
+        document.getElementById(
+            "endLongitude"
+        ).value =
+            historyRoute.endLongitude;
+
+        // Display coordinates in the input boxes
+        document.getElementById(
+            "startPlace"
+        ).value =
+            historyRoute.startLatitude.toFixed(6)
+            + ", "
+            + historyRoute.startLongitude.toFixed(6);
+
+        document.getElementById(
+            "endPlace"
+        ).value =
+            historyRoute.endLatitude.toFixed(6)
+            + ", "
+            + historyRoute.endLongitude.toFixed(6);
+
+        document.getElementById(
+            "startSelected"
+        ).textContent =
+            "Saved route start";
+
+        document.getElementById(
+            "endSelected"
+        ).textContent =
+            "Saved route destination";
+
+        // Select saved algorithm
+        const algorithmValue =
+            historyRoute.algorithm
+                .toLowerCase()
+                .includes("astar")
+                    ? "astar"
+                    : "dijkstra";
+
+        document.getElementById(
+            "algorithm"
+        ).value =
+            algorithmValue;
+
+        // Calculate the route again
+        await findRoute();
+    }
+
+
+    // =========================================================
+    // FORMAT DATE
+    // =========================================================
+
+    function formatDate(
+        dateString
+    ) {
+
+        if (!dateString) {
+            return "Unknown time";
+        }
+
+        const date =
+            new Date(dateString);
+
+        if (isNaN(date.getTime())) {
+            return dateString;
+        }
+
+        return date.toLocaleString();
+    }
+
+
+    // =========================================================
+    // CLOSE SUGGESTIONS WHEN CLICKING OUTSIDE
+    // =========================================================
+
+    document.addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                !event.target.closest(
+                    "#startPlace"
+                ) &&
+                !event.target.closest(
+                    "#startSuggestions"
+                )
+            ) {
+
+                hideSuggestions(
+                    "startSuggestions"
+                );
+            }
+
+            if (
+                !event.target.closest(
+                    "#endPlace"
+                ) &&
+                !event.target.closest(
+                    "#endSuggestions"
+                )
+            ) {
+
+                hideSuggestions(
+                    "endSuggestions"
+                );
+            }
+
+        }
+    );
+
+
+    // =========================================================
+    // LOAD HISTORY WHEN PAGE OPENS
+    // =========================================================
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            loadHistory();
+
+        }
+    );
+
+</script>
+
+</body>
+</html>

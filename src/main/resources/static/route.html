@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Intelligent Route Optimization System</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+
+        header {
+            background: #1f2937;
+            color: white;
+            padding: 18px 24px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            height: calc(100vh - 86px);
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #ddd;
+        }
+
+        .panel h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            margin-top: 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .result {
+            margin-top: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .result p {
+            margin: 8px 0;
+        }
+
+        .error {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        .location-help {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 800px) {
+
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .panel {
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>Intelligent Route Optimization System</h1>
+
+    <p>Dijkstra � A* � OpenStreetMap � Spring Boot</p>
+
+</header>
+
+<div class="container">
+
+    <div class="panel">
+
+        <h2>Find Route</h2>
+
+        <label for="inputType">
+            Location Input
+        </label>
+
+        <select id="inputType"
+                onchange="changeInputMode()">
+
+            <option value="city">
+                City / Place Name
+            </option>
+
+            <option value="coordinates">
+                Latitude & Longitude
+            </option>
+
+        </select>
+
+        <div id="cityInputs">
+
+            <label for="startCity">
+                Start Location
+            </label>
+
+            <input
+                id="startCity"
+                type="text"
+                value="Kolkata"
+                placeholder="Example: Kolkata"
+            >
+
+            <label for="endCity">
+                Destination
+            </label>
+
+            <input
+                id="endCity"
+                type="text"
+                value="Salt Lake"
+                placeholder="Example: Salt Lake"
+            >
+
+            <p class="location-help">
+                Enter a city, locality, landmark or place name.
+            </p>
+
+        </div>
+
+        <div id="coordinateInputs"
+             style="display: none;">
+
+            <label for="startLatitude">
+                Start Latitude
+            </label>
+
+            <input
+                id="startLatitude"
+                type="number"
+                step="any"
+                value="22.5726"
+            >
+
+            <label for="startLongitude">
+                Start Longitude
+            </label>
+
+            <input
+                id="startLongitude"
+                type="number"
+                step="any"
+                value="88.3639"
+            >
+
+            <label for="endLatitude">
+                Destination Latitude
+            </label>
+
+            <input
+                id="endLatitude"
+                type="number"
+                step="any"
+                value="22.6500"
+            >
+
+            <label for="endLongitude">
+                Destination Longitude
+            </label>
+
+            <input
+                id="endLongitude"
+                type="number"
+                step="any"
+                value="88.4460"
+            >
+
+        </div>
+
+        <label for="algorithm">
+            Algorithm
+        </label>
+
+        <select id="algorithm">
+
+            <option value="dijkstra">
+                Dijkstra
+            </option>
+
+            <option value="astar">
+                A*
+            </option>
+
+        </select>
+
+        <button onclick="findRoute()">
+            Find Route
+        </button>
+
+        <div id="loading"
+             class="loading">
+            Finding locations and calculating route...
+        </div>
+
+        <div id="result"
+             class="result">
+
+            <p>
+                Enter your locations and click
+                <strong>Find Route</strong>.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div id="map"></div>
+
+</div>
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script>
+
+    // =========================================
+    // MAP
+    // =========================================
+
+    const map = L.map("map")
+        .setView(
+            [22.5726, 88.3639],
+            11
+        );
+
+    L.tileLayer(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+        }
+    ).addTo(map);
+
+    let routeLine = null;
+    let startMarker = null;
+    let endMarker = null;
+
+
+    // =========================================
+    // CHANGE INPUT MODE
+    // =========================================
+
+    function changeInputMode() {
+
+        const inputType =
+            document.getElementById(
+                "inputType"
+            ).value;
+
+        const cityInputs =
+            document.getElementById(
+                "cityInputs"
+            );
+
+        const coordinateInputs =
+            document.getElementById(
+                "coordinateInputs"
+            );
+
+        if (inputType === "city") {
+
+            cityInputs.style.display = "block";
+            coordinateInputs.style.display = "none";
+
+        } else {
+
+            cityInputs.style.display = "none";
+            coordinateInputs.style.display = "block";
+        }
+    }
+
+
+    // =========================================
+    // GEOCODE CITY / PLACE
+    // =========================================
+
+    async function geocodeLocation(
+            locationName) {
+
+        const url =
+            "https://nominatim.openstreetmap.org/search"
+            + "?q="
+            + encodeURIComponent(locationName)
+            + "&format=jsonv2"
+            + "&limit=1";
+
+        const response =
+            await fetch(url);
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to find location: "
+                + locationName
+            );
+        }
+
+        const results =
+            await response.json();
+
+        if (results.length === 0) {
+
+            throw new Error(
+                "Location not found: "
+                + locationName
+            );
+        }
+
+        return {
+            latitude:
+                parseFloat(results[0].lat),
+
+            longitude:
+                parseFloat(results[0].lon),
+
+            displayName:
+                results[0].display_name
+        };
+    }
+
+
+    // =========================================
+    // FIND ROUTE
+    // =========================================
+
+    async function findRoute() {
+
+        const inputType =
+            document.getElementById(
+                "inputType"
+            ).value;
+
+        const algorithm =
+            document.getElementById(
+                "algorithm"
+            ).value;
+
+        const resultDiv =
+            document.getElementById(
+                "result"
+            );
+
+        const loading =
+            document.getElementById(
+                "loading"
+            );
+
+        loading.style.display = "block";
+
+        resultDiv.innerHTML =
+            "<p>Preparing route...</p>";
+
+
+        try {
+
+            let startLatitude;
+            let startLongitude;
+            let endLatitude;
+            let endLongitude;
+
+            let startName;
+            let endName;
+
+
+            // =================================
+            // CITY / PLACE MODE
+            // =================================
+
+            if (inputType === "city") {
+
+                const startCity =
+                    document.getElementById(
+                        "startCity"
+                    ).value.trim();
+
+                const endCity =
+                    document.getElementById(
+                        "endCity"
+                    ).value.trim();
+
+                if (!startCity || !endCity) {
+
+                    throw new Error(
+                        "Please enter both locations."
+                    );
+                }
+
+                resultDiv.innerHTML =
+                    "<p>Finding locations...</p>";
+
+                const startLocation =
+                    await geocodeLocation(
+                        startCity
+                    );
+
+                // Small delay to be polite to
+                // the public geocoding service.
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            1000
+                        )
+                );
+
+                const endLocation =
+                    await geocodeLocation(
+                        endCity
+                    );
+
+                startLatitude =
+                    startLocation.latitude;
+
+                startLongitude =
+                    startLocation.longitude;
+
+                endLatitude =
+                    endLocation.latitude;
+
+                endLongitude =
+                    endLocation.longitude;
+
+                startName =
+                    startLocation.displayName;
+
+                endName =
+                    endLocation.displayName;
+
+            }
+
+
+            // =================================
+            // COORDINATE MODE
+            // =================================
+
+            else {
+
+                startLatitude =
+                    parseFloat(
+                        document.getElementById(
+                            "startLatitude"
+                        ).value
+                    );
+
+                startLongitude =
+                    parseFloat(
+                        document.getElementById(
+                            "startLongitude"
+                        ).value
+                    );
+
+                endLatitude =
+                    parseFloat(
+                        document.getElementById(
+                            "endLatitude"
+                        ).value
+                    );
+
+                endLongitude =
+                    parseFloat(
+                        document.getElementById(
+                            "endLongitude"
+                        ).value
+                    );
+
+                startName =
+                    startLatitude
+                    + ", "
+                    + startLongitude;
+
+                endName =
+                    endLatitude
+                    + ", "
+                    + endLongitude;
+            }
+
+
+            // =================================
+            // CALL SPRING BOOT API
+            // =================================
+
+            resultDiv.innerHTML =
+                "<p>Calculating route...</p>";
+
+            const url =
+                "http://localhost:8080/api/route"
+                + "?startLatitude="
+                + startLatitude
+                + "&startLongitude="
+                + startLongitude
+                + "&endLatitude="
+                + endLatitude
+                + "&endLongitude="
+                + endLongitude
+                + "&algorithm="
+                + algorithm;
+
+
+            const response =
+                await fetch(url);
+
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+                throw new Error(
+                    errorText ||
+                    "Route request failed."
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            // =================================
+            // REMOVE OLD ROUTE
+            // =================================
+
+            if (routeLine !== null) {
+                map.removeLayer(routeLine);
+            }
+
+            if (startMarker !== null) {
+                map.removeLayer(startMarker);
+            }
+
+            if (endMarker !== null) {
+                map.removeLayer(endMarker);
+            }
+
+
+            // =================================
+            // ROUTE COORDINATES
+            // =================================
+
+            const coordinates =
+                data.routePoints.map(
+                    point => [
+                        point.latitude,
+                        point.longitude
+                    ]
+                );
+
+
+            // =================================
+            // DRAW ROUTE
+            // =================================
+
+            routeLine =
+                L.polyline(
+                    coordinates,
+                    {
+                        weight: 6
+                    }
+                ).addTo(map);
+
+
+            // =================================
+            // START MARKER
+            // =================================
+
+            startMarker =
+                L.marker(
+                    coordinates[0]
+                )
+                .addTo(map)
+                .bindPopup(
+                    "<strong>Start</strong><br>"
+                    + startName
+                );
+
+
+            // =================================
+            // END MARKER
+            // =================================
+
+            endMarker =
+                L.marker(
+                    coordinates[
+                        coordinates.length - 1
+                    ]
+                )
+                .addTo(map)
+                .bindPopup(
+                    "<strong>Destination</strong><br>"
+                    + endName
+                );
+
+
+            // =================================
+            // FIT MAP
+            // =================================
+
+            map.fitBounds(
+                routeLine.getBounds(),
+                {
+                    padding: [30, 30]
+                }
+            );
+
+
+            // =================================
+            // RESULT
+            // =================================
+
+            resultDiv.innerHTML =
+
+                "<h3>Route Result</h3>" +
+
+                "<p><strong>Algorithm:</strong> "
+                + data.algorithm
+                + "</p>" +
+
+                "<p><strong>Distance:</strong> "
+                + data.totalDistanceKm.toFixed(2)
+                + " km</p>" +
+
+                "<p><strong>Travel Time:</strong> "
+                + data.totalTravelTimeMinutes.toFixed(2)
+                + " minutes</p>" +
+
+                "<p><strong>Path Nodes:</strong> "
+                + data.pathNodes
+                + "</p>" +
+
+                "<p><strong>Route Points:</strong> "
+                + data.routePoints.length
+                + "</p>";
+
+        }
+
+        catch (error) {
+
+            resultDiv.innerHTML =
+                '<p class="error">'
+                + "Error: "
+                + error.message
+                + "</p>";
+        }
+
+        finally {
+
+            loading.style.display =
+                "none";
+        }
+    }
+
+</script>
+
+</body>
+
+</html>
+
