@@ -77,5 +77,28 @@ An intelligent geographic route optimization system built with Java, Spring Boot
              |                   Route History
              +-----------+-----------+
                          |
-                         v
+                         vcode README.md
                        Docker
+---
+
+## Screenshots
+
+### Route Map
+
+![Route Map](screenshots/route-map.png)
+
+### Dijkstra vs A* Comparison
+
+![Algorithm Comparison](screenshots/algorithm-comparison.png)
+
+### Dynamic Traffic Control
+
+![Traffic Control](screenshots/traffic-control.png)
+
+### Route History
+
+![Route History](screenshots/route-history.png)
+
+### Swagger API
+
+![Swagger API](screenshots/swagger-api.png)
