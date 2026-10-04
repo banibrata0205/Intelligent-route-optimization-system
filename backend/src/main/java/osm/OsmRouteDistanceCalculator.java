@@ -28,7 +28,7 @@ public class OsmRouteDistanceCalculator {
                     path.get(i + 1);
 
             totalDistanceKm +=
-                    calculateDistance(
+                    calculateSegmentDistanceKm(
                             currentNode,
                             nextNode
                     );
@@ -37,7 +37,11 @@ public class OsmRouteDistanceCalculator {
         return totalDistanceKm;
     }
 
-    private static double calculateDistance(
+    // ---------------------------------------------------------
+    // Calculate one route segment
+    // ---------------------------------------------------------
+
+    public static double calculateSegmentDistanceKm(
             Node node1,
             Node node2) {
 
@@ -71,13 +75,25 @@ public class OsmRouteDistanceCalculator {
                 longitude2 - longitude1;
 
         double a =
-                Math.sin(latitudeDifference / 2)
-                        * Math.sin(latitudeDifference / 2)
+                Math.sin(
+                        latitudeDifference / 2
+                )
+                *
+                Math.sin(
+                        latitudeDifference / 2
+                )
                 +
                 Math.cos(latitude1)
-                        * Math.cos(latitude2)
-                        * Math.sin(longitudeDifference / 2)
-                        * Math.sin(longitudeDifference / 2);
+                *
+                Math.cos(latitude2)
+                *
+                Math.sin(
+                        longitudeDifference / 2
+                )
+                *
+                Math.sin(
+                        longitudeDifference / 2
+                );
 
         double c =
                 2 * Math.atan2(

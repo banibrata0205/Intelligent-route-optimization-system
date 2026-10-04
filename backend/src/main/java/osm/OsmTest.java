@@ -1,5 +1,6 @@
 package osm;
 
+import algorithm.DijkstraAlgorithm;
 import graph.Graph;
 import model.Node;
 import model.RouteResult;
@@ -9,6 +10,10 @@ import java.util.List;
 public class OsmTest {
 
     public static void main(String[] args) {
+
+        // -------------------------------------------------
+        // OSM file
+        // -------------------------------------------------
 
         String osmFile =
                 "data/osm/eastern-zone-latest.osm.pbf";
@@ -47,16 +52,7 @@ public class OsmTest {
                 );
 
         // -------------------------------------------------
-        // Route service
-        // -------------------------------------------------
-
-        OsmRouteService routeService =
-                new OsmRouteService(
-                        graph
-                );
-
-        // -------------------------------------------------
-        // Start coordinates
+        // Geographic coordinates
         // -------------------------------------------------
 
         double startLatitude =
@@ -65,10 +61,6 @@ public class OsmTest {
         double startLongitude =
                 88.3639;
 
-        // -------------------------------------------------
-        // Destination coordinates
-        // -------------------------------------------------
-
         double endLatitude =
                 22.6500;
 
@@ -76,17 +68,22 @@ public class OsmTest {
                 88.4460;
 
         // -------------------------------------------------
-        // Find nearest nodes
+        // Find nearest graph nodes
         // -------------------------------------------------
 
+        OsmNearestNodeFinder finder =
+                new OsmNearestNodeFinder();
+
         Node startNode =
-                routeService.findNearestNode(
+                finder.findNearestNode(
+                        graph,
                         startLatitude,
                         startLongitude
                 );
 
         Node endNode =
-                routeService.findNearestNode(
+                finder.findNearestNode(
+                        graph,
                         endLatitude,
                         endLongitude
                 );
@@ -94,20 +91,13 @@ public class OsmTest {
         System.out.println();
 
         System.out.println(
-                "===== GEOGRAPHIC ROUTING TEST ====="
+                "===== ROUTE SUMMARY TEST ====="
         );
 
         System.out.println();
 
         System.out.println(
-                "Start coordinates: "
-                        + startLatitude
-                        + ", "
-                        + startLongitude
-        );
-
-        System.out.println(
-                "Nearest start node:"
+                "Start node:"
         );
 
         System.out.println(
@@ -117,14 +107,7 @@ public class OsmTest {
         System.out.println();
 
         System.out.println(
-                "Destination coordinates: "
-                        + endLatitude
-                        + ", "
-                        + endLongitude
-        );
-
-        System.out.println(
-                "Nearest destination node:"
+                "Destination node:"
         );
 
         System.out.println(
@@ -137,143 +120,29 @@ public class OsmTest {
             System.out.println();
 
             System.out.println(
-                    "Unable to find graph nodes."
+                    "Start or destination node not found."
             );
 
             return;
         }
 
         // -------------------------------------------------
-        // Dijkstra route
+        // Calculate Dijkstra route
         // -------------------------------------------------
 
-        RouteResult dijkstraRoute =
-                routeService.findRouteWithDijkstra(
-                        startLatitude,
-                        startLongitude,
-                        endLatitude,
-                        endLongitude
+        DijkstraAlgorithm dijkstra =
+                new DijkstraAlgorithm();
+
+        RouteResult route =
+                dijkstra.findShortestPath(
+                        graph,
+                        startNode.getId(),
+                        endNode.getId()
                 );
-
-        // -------------------------------------------------
-        // A* route
-        // -------------------------------------------------
-
-        RouteResult aStarRoute =
-                routeService.findRouteWithAStar(
-                        startLatitude,
-                        startLongitude,
-                        endLatitude,
-                        endLongitude
-                );
-
-        // -------------------------------------------------
-        // Calculate distances
-        // -------------------------------------------------
-
-        double dijkstraDistanceKm =
-                OsmRouteDistanceCalculator
-                        .calculateDistanceKm(
-                                dijkstraRoute.getPath()
-                        );
-
-        double aStarDistanceKm =
-                OsmRouteDistanceCalculator
-                        .calculateDistanceKm(
-                                aStarRoute.getPath()
-                        );
-
-        // -------------------------------------------------
-        // Display Dijkstra
-        // -------------------------------------------------
-
-        System.out.println();
-
-        System.out.println(
-                "===== DIJKSTRA ROUTE ====="
-        );
-
-        displayRoute(
-                dijkstraRoute,
-                dijkstraDistanceKm
-        );
-
-        // -------------------------------------------------
-        // Display A*
-        // -------------------------------------------------
-
-        System.out.println();
-
-        System.out.println(
-                "===== A* ROUTE ====="
-        );
-
-        displayRoute(
-                aStarRoute,
-                aStarDistanceKm
-        );
-
-        // -------------------------------------------------
-        // Compare
-        // -------------------------------------------------
-
-        if (!dijkstraRoute
-                .getPath()
-                .isEmpty()
-                &&
-                !aStarRoute
-                        .getPath()
-                        .isEmpty()) {
-
-            double dijkstraTime =
-                    dijkstraRoute
-                            .getTotalTravelTimeMinutes();
-
-            double aStarTime =
-                    aStarRoute
-                            .getTotalTravelTimeMinutes();
-
-            System.out.println();
-
-            System.out.println(
-                    "===== ROUTE COMPARISON ====="
-            );
-
-            System.out.printf(
-                    "Dijkstra distance: %.2f km%n",
-                    dijkstraDistanceKm
-            );
-
-            System.out.printf(
-                    "A* distance: %.2f km%n",
-                    aStarDistanceKm
-            );
-
-            System.out.printf(
-                    "Dijkstra time: %.2f minutes%n",
-                    dijkstraTime
-            );
-
-            System.out.printf(
-                    "A* time: %.2f minutes%n",
-                    aStarTime
-            );
-
-            System.out.printf(
-                    "Time difference: %.6f minutes%n",
-                    Math.abs(
-                            dijkstraTime
-                                    - aStarTime
-                    )
-            );
-        }
-    }
-
-    private static void displayRoute(
-            RouteResult route,
-            double distanceKm) {
 
         if (route.getPath().isEmpty()) {
+
+            System.out.println();
 
             System.out.println(
                     "No route found."
@@ -282,64 +151,35 @@ public class OsmTest {
             return;
         }
 
-        System.out.println(
-                "Number of nodes: "
-                        + route
-                                .getPath()
-                                .size()
-        );
+        // -------------------------------------------------
+        // Map route to OSM roads
+        // -------------------------------------------------
 
-        System.out.printf(
-                "Distance: %.2f km%n",
-                distanceKm
-        );
-
-        System.out.printf(
-                "Travel time: %.2f minutes%n",
-                route
-                        .getTotalTravelTimeMinutes()
-        );
-
-        System.out.print(
-                "Path: "
-        );
-
-        int displayLimit =
-                Math.min(
-                        20,
-                        route
-                                .getPath()
-                                .size()
+        OsmRouteRoadMapper roadMapper =
+                new OsmRouteRoadMapper(
+                        roads
                 );
 
-        for (int i = 0;
-             i < displayLimit;
-             i++) {
-
-            System.out.print(
-                    route
-                            .getPath()
-                            .get(i)
-                            .getName()
-            );
-
-            if (i <
-                    displayLimit - 1) {
-
-                System.out.print(
-                        " -> "
+        List<OsmRoad> routeRoads =
+                roadMapper.findRoadsForRoute(
+                        route,
+                        nodeMapper
                 );
-            }
-        }
 
-        if (route.getPath().size()
-                > displayLimit) {
+        // -------------------------------------------------
+        // Create route summary
+        // -------------------------------------------------
 
-            System.out.print(
-                    " -> ..."
-            );
-        }
+        OsmRouteSummary summary =
+                new OsmRouteSummary(
+                        route,
+                        routeRoads
+                );
 
-        System.out.println();
+        // -------------------------------------------------
+        // Display summary
+        // -------------------------------------------------
+
+        summary.display();
     }
 }
